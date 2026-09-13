@@ -1,0 +1,8 @@
+{
+  "team": "NanoCo",
+  "members": [
+    { "name": "Gavriel", "role": "founder", "moods": { "2026-W36": 4, "2026-W37": 5 } },
+    { "name": "Omri", "role": "engineering", "moods": { "2026-W36": 3, "2026-W37": 4 } },
+    { "name": "Zvi", "role": "product", "moods": { "2026-W36": 5, "2026-W37": 4 } }
+  ]
+}
