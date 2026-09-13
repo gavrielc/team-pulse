@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Team pulse</title>
+<style>
+  body { font: 16px/1.4 system-ui, sans-serif; margin: 2rem; color: #222; }
+  h1 { font-weight: 600; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; }
+  .card { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; }
+  .card h2 { margin: 0 0 .25rem; font-size: 1.1rem; }
+  .role { color: #666; font-size: .9rem; }
+  .week { display: flex; justify-content: space-between; margin-top: .5rem; }
+  .mood { font-weight: 600; }
+  .m1 { color: #b00 } .m2 { color: #c60 } .m3 { color: #880 } .m4 { color: #280 } .m5 { color: #060 }
+</style>
+</head>
+<body>
+<h1>Team pulse</h1>
+<p id="summary"></p>
+<div class="grid" id="members"></div>
+<script>
+  fetch('pulse.json').then(r => r.json()).then(data => {
+    const weeks = [...new Set(data.members.flatMap(m => Object.keys(m.moods)))].sort();
+    document.getElementById('summary').textContent =
+      `${data.team}: ${data.members.length} members, ${weeks.length} weeks of check-ins`;
+    const grid = document.getElementById('members');
+    for (const m of data.members) {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `<h2>${m.name}</h2><div class="role">${m.role}</div>` +
+        weeks.map(w => {
+          const v = m.moods[w];
+          return `<div class="week"><span>${w}</span><span class="mood m${v ?? 0}">${v ?? '—'}</span></div>`;
+        }).join('');
+      grid.appendChild(card);
+    }
+  });
+</script>
+</body>
+</html>
