@@ -1,11 +1,10 @@
-'use strict';
+import http from 'node:http';
+import fs from 'node:fs';
+import path from 'node:path';
 
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
-
-const ROOT = __dirname;
-const DATA_PATH = path.join(ROOT, 'pulse.json');
+const DATA_PATH = process.env.PULSE_DATA_FILE
+  ? path.resolve(process.env.PULSE_DATA_FILE)
+  : path.join(process.cwd(), 'pulse.json');
 
 function readData() {
   const raw = fs.readFileSync(DATA_PATH, 'utf8');
@@ -133,8 +132,8 @@ function main() {
   });
 }
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   main();
 }
 
-module.exports = { createServer, requestListener, filterCheckins, buildDigest };
+export { createServer, requestListener, filterCheckins, buildDigest };

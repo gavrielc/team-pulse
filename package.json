@@ -2,11 +2,12 @@
   "name": "team-pulse",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Pulse v1: a small team-health page.",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test"
+    "test": "node --test tests/*.test.js"
   },
   "engines": {
     "node": ">=18"
