@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team Pulse</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --panel: #ffffff;
+    --border: #e2e5ea;
+    --text: #1c2129;
+    --muted: #6b7280;
+    --mood-1: #e5484d;
+    --mood-2: #f0862b;
+    --mood-3: #d4a72c;
+    --mood-4: #7fb519;
+    --mood-5: #2fa86a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    padding: 32px 24px 64px;
+  }
+  header { max-width: 960px; margin: 0 auto 28px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .subtitle { color: var(--muted); margin: 0; font-size: 13px; }
+  main { max-width: 960px; margin: 0 auto; display: flex; flex-direction: column; gap: 36px; }
+  section h2 { font-size: 16px; margin: 0 0 14px; }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+  .card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    background: var(--panel);
+  }
+  .card .name { font-weight: 600; font-size: 13px; margin-bottom: 8px; }
+  .mood-row { display: flex; align-items: center; gap: 8px; }
+  .mood-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 4px;
+    border-radius: 11px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .mood-1 { background: var(--mood-1); }
+  .mood-2 { background: var(--mood-2); }
+  .mood-3 { background: var(--mood-3); }
+  .mood-4 { background: var(--mood-4); }
+  .mood-5 { background: var(--mood-5); }
+  .week { color: var(--muted); font-size: 12px; }
+  .note { color: var(--muted); font-size: 12px; margin-top: 8px; }
+  .empty { color: var(--muted); font-size: 13px; font-style: italic; }
+  .projects { display: flex; flex-direction: column; gap: 16px; }
+  .project {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px 18px;
+    background: var(--panel);
+  }
+  .project h3 { margin: 0 0 10px; font-size: 14px; }
+  .trend-chart { width: 100%; max-width: 560px; height: auto; display: block; }
+  .trend-line { stroke: #4c6fff; stroke-width: 2; }
+  .dot { fill: #4c6fff; }
+  .axis-label { fill: var(--muted); font-size: 9px; }
+  .error { color: var(--mood-1); }
+</style>
+</head>
+<body>
+<header>
+  <h1>Team Pulse</h1>
+  <p class="subtitle" id="subtitle">Loading…</p>
+</header>
+<main id="app">
+  <section id="members-section">
+    <h2>Members</h2>
+    <div class="cards" id="member-cards"></div>
+  </section>
+  <section id="projects-section">
+    <h2>Weekly trend</h2>
+    <div class="projects" id="project-trends"></div>
+  </section>
+</main>
+<script>
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[c]));
+  }
+
+  function latestCheckin(checkins) {
+    return checkins.reduce((best, c) => (!best || c.week > best.week) ? c : best, null);
+  }
+
+  function renderMembers(members, checkins) {
+    const container = document.getElementById('member-cards');
+    container.innerHTML = '';
+    for (const m of members) {
+      const mine = checkins.filter((c) => c.member === m.id);
+      const latest = latestCheckin(mine);
+      const card = document.createElement('div');
+      card.className = 'card';
+      if (!latest) {
+        card.innerHTML = `<div class="name">${escapeHtml(m.name)}</div><div class="empty">no check-ins yet</div>`;
+      } else {
+        card.innerHTML = `
+          <div class="name">${escapeHtml(m.name)}</div>
+          <div class="mood-row">
+            <span class="mood-badge mood-${latest.mood}">${latest.mood}</span>
+            <span class="week">${escapeHtml(latest.week)}</span>
+          </div>
+          ${latest.note ? `<div class="note">${escapeHtml(latest.note)}</div>` : ''}
+        `;
+      }
+      container.appendChild(card);
+    }
+  }
+
+  function weeklyTrend(projectId, checkins) {
+    const mine = checkins.filter((c) => c.project === projectId);
+    const byWeek = new Map();
+    for (const c of mine) {
+      if (!byWeek.has(c.week)) byWeek.set(c.week, []);
+      byWeek.get(c.week).push(c.mood);
+    }
+    return [...byWeek.entries()]
+      .map(([week, moods]) => ({ week, avg: moods.reduce((a, b) => a + b, 0) / moods.length }))
+      .sort((a, b) => a.week.localeCompare(b.week));
+  }
+
+  function renderChart(points) {
+    const w = 560, h = 160, padX = 32, padY = 20;
+    const stepX = points.length > 1 ? (w - 2 * padX) / (points.length - 1) : 0;
+    const yOf = (mood) => h - padY - ((mood - 1) / 4) * (h - 2 * padY);
+    const coords = points.map((p, i) => [padX + i * stepX, yOf(p.avg)]);
+    const path = coords.map(([x, y], i) => (i === 0 ? 'M' : 'L') + x.toFixed(1) + ' ' + y.toFixed(1)).join(' ');
+    const dots = coords.map(([x, y], i) =>
+      `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" class="dot"><title>${escapeHtml(points[i].week)}: ${points[i].avg.toFixed(2)}</title></circle>`
+    ).join('');
+    const labels = points.map((p, i) =>
+      `<text x="${coords[i][0].toFixed(1)}" y="${h - 4}" class="axis-label" text-anchor="middle">${escapeHtml(p.week)}</text>`
+    ).join('');
+    return `<svg viewBox="0 0 ${w} ${h}" class="trend-chart" role="img" aria-label="weekly mood trend">
+      <path d="${path}" class="trend-line" fill="none"></path>
+      ${dots}
+      ${labels}
+    </svg>`;
+  }
+
+  function renderProjects(projects, checkins) {
+    const container = document.getElementById('project-trends');
+    container.innerHTML = '';
+    for (const p of projects) {
+      const points = weeklyTrend(p.id, checkins);
+      const section = document.createElement('div');
+      section.className = 'project';
+      const heading = `<h3>${escapeHtml(p.name)}</h3>`;
+      section.innerHTML = heading + (points.length === 0
+        ? '<div class="empty">no check-ins yet</div>'
+        : renderChart(points));
+      container.appendChild(section);
+    }
+  }
+
+  async function main() {
+    try {
+      const res = await fetch('/api/pulse');
+      if (!res.ok) throw new Error('request failed with status ' + res.status);
+      const data = await res.json();
+      renderMembers(data.members, data.checkins);
+      renderProjects(data.projects, data.checkins);
+      document.getElementById('subtitle').textContent =
+        data.members.length + ' members · ' + data.projects.length + ' projects';
+    } catch (err) {
+      document.getElementById('subtitle').textContent = '';
+      document.getElementById('app').innerHTML =
+        `<p class="error">Could not load pulse data: ${escapeHtml(err.message)}</p>`;
+    }
+  }
+
+  main();
+</script>
+</body>
+</html>
