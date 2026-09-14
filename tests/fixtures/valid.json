@@ -1,0 +1,16 @@
+{
+  "members": [
+    { "id": "dex", "name": "Dex" },
+    { "id": "ari", "name": "Ari" }
+  ],
+  "projects": [
+    { "id": "pulse", "name": "Pulse" },
+    { "id": "sky", "name": "Sky" }
+  ],
+  "checkins": [
+    { "member": "dex", "project": "pulse", "week": "2026-W37", "mood": 4, "note": "good sprint" },
+    { "member": "dex", "project": "pulse", "week": "2026-W38", "mood": 5, "note": "" },
+    { "member": "ari", "project": "pulse", "week": "2026-W37", "mood": 3, "note": "mid" },
+    { "member": "ari", "project": "sky", "week": "2026-W37", "mood": 2, "note": "rough week" }
+  ]
+}
