@@ -1,0 +1,48 @@
+{
+  "members": [
+    { "id": "dex", "name": "Dex" },
+    { "id": "ari", "name": "Ari" },
+    { "id": "tess", "name": "Tess" }
+  ],
+  "projects": [
+    { "id": "team-pulse", "name": "Team Pulse" },
+    { "id": "empty-project", "name": "Empty Project" }
+  ],
+  "checkins": [
+    {
+      "project": "team-pulse",
+      "week": "2026-W36",
+      "member": "dex",
+      "mood": 3,
+      "note": "steady"
+    },
+    {
+      "project": "team-pulse",
+      "week": "2026-W36",
+      "member": "ari",
+      "mood": 4,
+      "note": "good week"
+    },
+    {
+      "project": "team-pulse",
+      "week": "2026-W37",
+      "member": "dex",
+      "mood": 4,
+      "note": "shipped the validator"
+    },
+    {
+      "project": "team-pulse",
+      "week": "2026-W37",
+      "member": "ari",
+      "mood": 5,
+      "note": "great"
+    },
+    {
+      "project": "team-pulse",
+      "week": "2026-W37",
+      "member": "tess",
+      "mood": 3,
+      "note": "busy"
+    }
+  ]
+}
