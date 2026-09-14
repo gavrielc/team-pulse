@@ -20,6 +20,43 @@ function filterCheckins(checkins, { project, week }) {
   });
 }
 
+function buildDigest(data) {
+  const latestWeek = data.checkins.reduce(
+    (max, c) => (max === null || c.week > max ? c.week : max),
+    null
+  );
+
+  if (latestWeek === null) {
+    return { week: null, projects: [] };
+  }
+
+  const nameById = new Map(data.projects.map((p) => [p.id, p.name]));
+  const byProject = new Map();
+  for (const c of data.checkins) {
+    if (c.week !== latestWeek) continue;
+    if (!byProject.has(c.project)) byProject.set(c.project, []);
+    byProject.get(c.project).push(c.mood);
+  }
+
+  const projects = data.projects
+    .filter((p) => byProject.has(p.id))
+    .map((p) => {
+      const moods = byProject.get(p.id);
+      const avgMood = Math.round((moods.reduce((a, b) => a + b, 0) / moods.length) * 10) / 10;
+      const membersCheckedIn = moods.length;
+      const name = nameById.get(p.id) || p.id;
+      return {
+        id: p.id,
+        name,
+        avgMood,
+        membersCheckedIn,
+        summary: `${name}: avg mood ${avgMood} across ${membersCheckedIn} check-ins`,
+      };
+    });
+
+  return { week: latestWeek, projects };
+}
+
 function sendJson(res, status, body) {
   const payload = JSON.stringify(body);
   res.writeHead(status, {
@@ -48,6 +85,18 @@ function handlePulse(res, url) {
   });
 }
 
+function handleDigest(res) {
+  let data;
+  try {
+    data = readData();
+  } catch (err) {
+    sendJson(res, 500, { error: 'failed to read pulse data' });
+    return;
+  }
+
+  sendJson(res, 200, buildDigest(data));
+}
+
 function requestListener(req, res) {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
 
@@ -57,6 +106,15 @@ function requestListener(req, res) {
       return;
     }
     handlePulse(res, url);
+    return;
+  }
+
+  if (url.pathname === '/api/digest') {
+    if (req.method !== 'GET') {
+      sendJson(res, 405, { error: 'method not allowed' });
+      return;
+    }
+    handleDigest(res);
     return;
   }
 
@@ -79,4 +137,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { createServer, requestListener, filterCheckins };
+module.exports = { createServer, requestListener, filterCheckins, buildDigest };
