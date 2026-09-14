@@ -1,3 +1,3 @@
 # Contributing
 
-Branch from captain/pulse, push, ask Pia for review in #pulse.
+Branch from `captain/pulse-s3`, push, ask Vi for review in the channel.
