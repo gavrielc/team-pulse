@@ -1,0 +1,15 @@
+{
+  "members": [
+    { "id": "a", "name": "A" },
+    { "id": "b", "name": "B" },
+    { "id": "c", "name": "C" }
+  ],
+  "projects": [
+    { "id": "p", "name": "P" }
+  ],
+  "checkins": [
+    { "member": "a", "project": "p", "week": "2026-W40", "mood": 3, "note": "" },
+    { "member": "b", "project": "p", "week": "2026-W40", "mood": 4, "note": "" },
+    { "member": "c", "project": "p", "week": "2026-W40", "mood": 4, "note": "" }
+  ]
+}

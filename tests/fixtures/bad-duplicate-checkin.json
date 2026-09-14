@@ -1,0 +1,12 @@
+{
+  "members": [
+    { "id": "dex", "name": "Dex" }
+  ],
+  "projects": [
+    { "id": "pulse", "name": "Pulse" }
+  ],
+  "checkins": [
+    { "member": "dex", "project": "pulse", "week": "2026-W37", "mood": 4, "note": "first" },
+    { "member": "dex", "project": "pulse", "week": "2026-W37", "mood": 2, "note": "duplicate" }
+  ]
+}
