@@ -9,3 +9,7 @@ shipped, what is open.
   by project and week (Ari, T2), index.html member cards + weekly trend (Wen,
   T3, blocked on T2's contract), tests (Tess, T4). Contract settled in README
   before staffing so T3 isn't blocked once Ari starts.
+- 2026-09-14: Pulse v1 shipped — T1–T4 all merged onto `captain/pulsev1d`.
+  One round of changes on T2 (missing/malformed pulse.json crashed the
+  server; fixed to a 500). Full suite (18/18) passes on captain. PR #6 open
+  for review.
