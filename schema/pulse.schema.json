@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://team-pulse.local/schema/pulse.schema.json",
+  "title": "Pulse data",
+  "description": "Members, projects, and weekly check-ins for the team-health page. Structural shape only — referential integrity (checkins.project/member must name a known project/member) and id uniqueness are enforced by scripts/validate-pulse.js, not expressible here.",
+  "type": "object",
+  "required": ["members", "projects", "checkins"],
+  "additionalProperties": false,
+  "properties": {
+    "members": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/member" }
+    },
+    "projects": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/project" }
+    },
+    "checkins": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/checkin" }
+    }
+  },
+  "$defs": {
+    "member": {
+      "type": "object",
+      "required": ["id", "name"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 }
+      }
+    },
+    "project": {
+      "type": "object",
+      "required": ["id", "name"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 }
+      }
+    },
+    "checkin": {
+      "type": "object",
+      "required": ["project", "week", "member", "mood", "note"],
+      "additionalProperties": false,
+      "properties": {
+        "project": { "type": "string", "minLength": 1 },
+        "week": { "type": "string", "pattern": "^\\d{4}-W\\d{2}$" },
+        "member": { "type": "string", "minLength": 1 },
+        "mood": { "type": "integer", "minimum": 1, "maximum": 5 },
+        "note": { "type": "string", "maxLength": 280 }
+      }
+    }
+  }
+}

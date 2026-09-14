@@ -1,11 +1,12 @@
 {
-  "name": "team-pulse-api",
+  "name": "team-pulse",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "description": "Tiny Node API serving GET /api/pulse from pulse.json",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "validate": "node scripts/validate-pulse.js"
   }
 }
