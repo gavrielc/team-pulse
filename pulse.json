@@ -1,0 +1,20 @@
+{
+  "members": [
+    { "id": "alice", "name": "Alice Kim" },
+    { "id": "bob", "name": "Bob Diaz" },
+    { "id": "carol", "name": "Carol Nguyen" }
+  ],
+  "projects": [
+    { "id": "atlas", "name": "Atlas" },
+    { "id": "nova", "name": "Nova" }
+  ],
+  "checkins": [
+    { "member": "alice", "project": "atlas", "week": "2026-W01", "mood": 4, "note": "Kicked off the sprint" },
+    { "member": "alice", "project": "atlas", "week": "2026-W02", "mood": 5, "note": "Shipped the API" },
+    { "member": "alice", "project": "atlas", "week": "2026-W03", "mood": 3, "note": "Debugging edge cases" },
+    { "member": "bob", "project": "atlas", "week": "2026-W01", "mood": 3, "note": "Onboarding" },
+    { "member": "bob", "project": "atlas", "week": "2026-W02", "mood": 4, "note": "" },
+    { "member": "bob", "project": "nova", "week": "2026-W01", "mood": 2, "note": "Blocked on design review" },
+    { "member": "bob", "project": "nova", "week": "2026-W03", "mood": 4, "note": "Unblocked, good progress" }
+  ]
+}
