@@ -309,14 +309,21 @@
     return latest;
   }
 
-  // One check-in per member for the latest week (a member with more than
-  // one project's check-in that week keeps the last one seen).
+  // One check-in per member for the latest week. A member can have more
+  // than one project's check-in that week (e.g. Sam: Pulse and Atlas in the
+  // same week) — the API's response order isn't part of the contract, so
+  // picking "the last one seen" would be unstable. Break the tie by project
+  // id, ascending, so the same input always yields the same card.
   function computeLatestByMember(checkins, projects) {
     var projectName = {};
     projects.forEach(function (p) { projectName[p.id] = p.name; });
 
+    var sorted = checkins.slice().sort(function (a, b) {
+      return a.project < b.project ? -1 : a.project > b.project ? 1 : 0;
+    });
+
     var latest = {};
-    checkins.forEach(function (c) {
+    sorted.forEach(function (c) {
       latest[c.member] = {
         mood: c.mood,
         note: c.note,
