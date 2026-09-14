@@ -1,6 +1,6 @@
 # Tests
 
-`npm test` (or `node --test tests/`) runs:
+`npm test` (or `node --test tests/*.test.js`) runs:
 
 - `schema.test.js` — the `pulse.json` validator (T1, Dex): a valid fixture
   passes, and one fixture per violation from the README's schema section is
