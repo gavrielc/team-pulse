@@ -75,3 +75,24 @@ Query params: `project` (required, a `projects[].id`), `week` (optional, a
 - Unknown `project`: `404` with `{ "error": "unknown project" }`. Known
   `project` with no check-ins for the given `week`: `200` with an empty
   `checkins` array (not a `404`).
+- The canonical `week` pattern is the validator's:
+  `^\d{4}-W(0[1-9]|[1-4][0-9]|5[0-3])$` (ISO weeks 01–53). The API validates
+  `week` against this same pattern, not a looser one.
+
+### `GET /pulse.json`
+
+Static route serving the raw data file (the same object described above), so
+the page can enumerate `members` and `projects` without hardcoding them.
+
+### Module layout
+
+So the pieces plug into each other and into the test suite without guessing:
+
+- Validator: `lib/validate-pulse.js`, CommonJS, exports
+  `{ validatePulse(data) -> { valid, errors }, WEEK_PATTERN }`.
+- API: `server.js` at the repo root, CommonJS, exports `{ requestListener }`
+  (a plain `(req, res) => void`, usable with `http.createServer`). Reads
+  `data/pulse.json` by default; overridable with the `PULSE_DATA_PATH` env
+  var — that's how tests point it at a fixture without a factory function.
+- One root `package.json` for the whole repo (scripts: `validate`, `start`,
+  `test`) — don't add a second one.

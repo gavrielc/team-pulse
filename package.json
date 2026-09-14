@@ -5,6 +5,8 @@
   "description": "team-pulse dashboard: pulse.json schema, API, and page",
   "main": "lib/validate-pulse.js",
   "scripts": {
-    "validate": "node lib/validate-pulse.js data/pulse.json"
+    "validate": "node lib/validate-pulse.js data/pulse.json",
+    "start": "node server.js",
+    "test": "node --test"
   }
 }
