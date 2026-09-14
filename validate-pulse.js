@@ -2,7 +2,8 @@
 // Validates a pulse.json data file against the schema in README.md's
 // "Data file" section. Usage: node validate-pulse.js [path/to/pulse.json]
 
-const fs = require('fs');
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 
 const WEEK_RE = /^\d{4}-W\d{2}$/;
 
@@ -137,8 +138,8 @@ function main() {
   console.log(`${path} is valid`);
 }
 
-module.exports = { validatePulse };
+export { validatePulse };
 
-if (require.main === module) {
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main();
 }
