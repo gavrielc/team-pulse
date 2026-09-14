@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, '..');
-const VALIDATOR_PATH = path.join(ROOT, 'validate.js');
+const VALIDATOR_PATH = path.join(ROOT, 'validate-pulse.js');
 const FIXTURES = path.join(__dirname, 'fixtures');
 
 function runValidator(fixtureName) {

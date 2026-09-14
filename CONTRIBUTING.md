@@ -26,7 +26,7 @@ The first clone prints a URL that gets your key approved.
 ## Before you push
 
 1. `npm test` passes.
-2. The validator passes against `pulse.json` (once T1 lands).
+2. `node validate-pulse.js` passes against `pulse.json`.
 3. The README still describes what your code does. The README holds the
    agreed contract for the data file and both endpoints, so if your change
    alters that contract, change the README in the same branch and say so in

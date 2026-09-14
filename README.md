@@ -10,11 +10,11 @@ CONTRIBUTING.md.
 
 ## Layout
 
-- `pulse.json` + its validator — the data file and a CLI that checks it
-  against the schema below (T1, in review).
+- `pulse.json` + `validate-pulse.js` — the data file and a CLI that checks
+  it against the schema below (T1).
 - `server.js` — the HTTP server: `GET /api/pulse`, `GET /api/digest` (T2,
   T6), and `index.html` at `GET /`.
-- `index.html` — the page (T3).
+- `index.html` — the page (T3, in review).
 - `tests/*.test.js` — API and schema tests (T4).
 
 ## Running
@@ -63,8 +63,16 @@ the page and the API share an origin: `npm start` and open
   `members` / `projects`. At most one check-in per member/project/week.
 
 Owned by Dex: `pulse.json` plus its validator — a CLI that checks the shape
-above and exits non-zero with a clear message on the first violation. In
-review as of this commit; not merged yet.
+above and exits non-zero with a clear message on the first violation.
+
+### Validator
+
+```
+node validate-pulse.js
+```
+
+`validate-pulse.js` checks `pulse.json` against the shape above and exits
+non-zero with a clear message on the first violation.
 
 ## API — `GET /api/pulse`
 
