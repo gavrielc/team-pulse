@@ -11,7 +11,7 @@ database.
 ## Quick start
 
     npm install
-    npm start               # run the API (see server.js for the port)
+    npm start               # run the server (API and page) on http://localhost:3000
     npm test                # api.test.js + schema.test.js, via node --test
     npm run validate:pulse  # check pulse.json against the schema
 
@@ -33,6 +33,8 @@ checks a file against the schema and also enforces those references; run it
 with `npm run validate:pulse` after editing the data.
 
 Set `PULSE_DATA_FILE` to point the server at a different file.
+
+Set `PORT` to serve on a different port (default 3000).
 
 ## The API
 
