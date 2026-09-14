@@ -14,7 +14,7 @@ CONTRIBUTING.md.
   it against the schema below (T1).
 - `server.js` — the HTTP server: `GET /api/pulse`, `GET /api/digest` (T2,
   T6), and `index.html` at `GET /`.
-- `index.html` — the page (T3, in review).
+- `index.html` — the page (T3, T8).
 - `tests/*.test.js` — API and schema tests (T4).
 
 ## Running
@@ -146,14 +146,15 @@ Owned by Ari, alongside `/api/pulse`.
   `GET` on a documented route.
 - `500` with `{"error": "failed to read pulse data"}` when the data file is
   missing, unreadable or not valid JSON.
-- `404` with `{"error": "not found"}` for an unknown route. `GET /` also
-  returns this until `index.html` lands with T3.
+- `404` with `{"error": "not found"}` for an unknown route.
 
 ## Page — `index.html`
 
 Fetches `/api/pulse` and `/api/digest`; renders a digest section at the top
 (each project's `summary` for its latest week), a card per member (name,
-latest mood, latest note), and, per project, a weekly mood trend.
+latest mood, latest note), and, per project, a weekly mood trend. When a
+member has check-ins for more than one project in that week, the card shows
+the one whose `project` id sorts last alphabetically.
 Owned by Wen.
 
 ## Tests
