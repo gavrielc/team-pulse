@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team Pulse</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page:        #f9f9f7;
+    --surface:     #fcfcfb;
+    --text:        #0b0b0b;
+    --text-2:      #52514e;
+    --muted:       #898781;
+    --gridline:    #e1e0d9;
+    --baseline:    #c3c2b7;
+    --border:      rgba(11,11,11,0.10);
+    --series-1:    #2a78d6;
+    --good:        #0ca30c;
+    --warning:     #fab219;
+    --serious:     #ec835a;
+    --critical:    #d03b3b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      color-scheme: dark;
+      --page:        #0d0d0d;
+      --surface:     #1a1a19;
+      --text:        #ffffff;
+      --text-2:      #c3c2b7;
+      --muted:       #898781;
+      --gridline:    #2c2c2a;
+      --baseline:    #383835;
+      --border:      rgba(255,255,255,0.10);
+      --series-1:    #3987e5;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page:        #0d0d0d;
+    --surface:     #1a1a19;
+    --text:        #ffffff;
+    --text-2:      #c3c2b7;
+    --muted:       #898781;
+    --gridline:    #2c2c2a;
+    --baseline:    #383835;
+    --border:      rgba(255,255,255,0.10);
+    --series-1:    #3987e5;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--text);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main { max-width: 1080px; margin: 0 auto; padding: 32px 24px 64px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .subtitle { color: var(--text-2); margin: 0 0 32px; }
+  h2 { font-size: 15px; text-transform: uppercase; letter-spacing: 0.04em;
+       color: var(--text-2); margin: 40px 0 16px; }
+
+  #status {
+    padding: 12px 16px; border-radius: 8px; background: var(--surface);
+    border: 1px solid var(--border); color: var(--text-2);
+  }
+  #status[hidden] { display: none; }
+  #status.error { color: var(--critical); }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+
+  /* member cards */
+  .member-card .name { font-weight: 600; margin: 0 0 2px; }
+  .member-card .project { color: var(--muted); font-size: 13px; margin: 0 0 12px; }
+  .mood-line {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 13px; margin-bottom: 10px; color: var(--text-2);
+  }
+  .mood-dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .mood-value { font-weight: 600; color: var(--text); }
+  .member-card .note { color: var(--text-2); font-size: 13px; margin: 0; }
+  .member-card .week { color: var(--muted); font-size: 12px; margin: 0 0 8px; }
+  .member-card .empty { color: var(--muted); font-size: 13px; font-style: italic; }
+
+  /* trend charts */
+  .trend-card .project-name { font-weight: 600; margin: 0 0 2px; }
+  .trend-card .project-sub { color: var(--muted); font-size: 12px; margin: 0 0 12px; }
+  .trend-card svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .trend-card .empty { color: var(--muted); font-size: 13px; font-style: italic; }
+
+  .gridline { stroke: var(--gridline); stroke-width: 1; }
+  .axis-label { fill: var(--muted); font-size: 9px; }
+  .trend-line { fill: none; stroke: var(--series-1); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .trend-dot { fill: var(--series-1); stroke: var(--surface); stroke-width: 2; }
+  .trend-hit { fill: transparent; cursor: pointer; }
+  .end-label { fill: var(--text); font-size: 11px; font-weight: 600; }
+
+  /* tooltip */
+  #tooltip {
+    position: fixed; z-index: 10; pointer-events: none;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 6px; padding: 6px 10px; font-size: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    transform: translate(-50%, calc(-100% - 10px));
+  }
+  #tooltip[hidden] { display: none; }
+  #tooltip .t-week { color: var(--muted); }
+  #tooltip .t-value { color: var(--text); font-weight: 600; }
+
+  details.raw { margin-top: 40px; }
+  details.raw summary { cursor: pointer; color: var(--text-2); font-size: 13px; }
+  table.raw-table {
+    margin-top: 12px; border-collapse: collapse; width: 100%; font-size: 13px;
+  }
+  table.raw-table th, table.raw-table td {
+    text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--gridline);
+  }
+  table.raw-table th { color: var(--muted); font-weight: 600; }
+  table.raw-table td.num { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Team Pulse</h1>
+  <p class="subtitle">Member check-ins and weekly mood trend by project</p>
+
+  <p id="status">Loading…</p>
+
+  <section id="members-section" hidden>
+    <h2>Members</h2>
+    <div id="members" class="grid"></div>
+  </section>
+
+  <section id="trends-section" hidden>
+    <h2>Weekly trend by project</h2>
+    <div id="trends" class="grid"></div>
+  </section>
+
+  <details class="raw" id="raw-section" hidden>
+    <summary>View raw check-ins</summary>
+    <table class="raw-table">
+      <thead>
+        <tr><th>Member</th><th>Project</th><th>Week</th><th>Mood</th><th>Note</th></tr>
+      </thead>
+      <tbody id="raw-body"></tbody>
+    </table>
+  </details>
+</main>
+
+<div id="tooltip" role="tooltip" hidden>
+  <div class="t-week"></div>
+  <div class="t-value"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  function moodStatus(mood) {
+    if (mood <= 1) return { key: 'critical', label: 'critical', color: 'var(--critical)' };
+    if (mood <= 2) return { key: 'serious', label: 'serious', color: 'var(--serious)' };
+    if (mood === 3) return { key: 'warning', label: 'warning', color: 'var(--warning)' };
+    return { key: 'good', label: 'good', color: 'var(--good)' };
+  }
+
+  // Latest check-in per member. Ties on the same latest week (a member
+  // checked into more than one project that week) resolve by project id
+  // ascending, so the result never depends on API response order.
+  function computeLatestByMember(members, checkins) {
+    const byMember = new Map();
+    for (const m of members) byMember.set(m.id, []);
+    for (const c of checkins) {
+      if (!byMember.has(c.member)) byMember.set(c.member, []);
+      byMember.get(c.member).push(c);
+    }
+    const latest = new Map();
+    for (const [memberId, list] of byMember) {
+      if (list.length === 0) continue;
+      const sorted = list.slice().sort((a, b) => {
+        if (a.week !== b.week) return a.week < b.week ? 1 : -1;
+        return a.project < b.project ? -1 : a.project > b.project ? 1 : 0;
+      });
+      latest.set(memberId, sorted[0]);
+    }
+    return latest;
+  }
+
+  // Weekly average mood per project, sorted by week ascending.
+  function computeWeeklyTrendByProject(projects, checkins) {
+    const byProject = new Map();
+    for (const p of projects) byProject.set(p.id, new Map());
+    for (const c of checkins) {
+      if (!byProject.has(c.project)) byProject.set(c.project, new Map());
+      const weeks = byProject.get(c.project);
+      if (!weeks.has(c.week)) weeks.set(c.week, []);
+      weeks.get(c.week).push(c.mood);
+    }
+    const trend = new Map();
+    for (const [projectId, weeks] of byProject) {
+      const points = Array.from(weeks.entries())
+        .map(([week, moods]) => ({
+          week,
+          avg: moods.reduce((s, v) => s + v, 0) / moods.length,
+        }))
+        .sort((a, b) => (a.week < b.week ? -1 : a.week > b.week ? 1 : 0));
+      trend.set(projectId, points);
+    }
+    return trend;
+  }
+
+  function el(tag, attrs, children) {
+    const node = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (k === 'class') node.className = v;
+      else node.setAttribute(k, v);
+    }
+    for (const child of children || []) {
+      if (typeof child === 'string') node.appendChild(document.createTextNode(child));
+      else if (child) node.appendChild(child);
+    }
+    return node;
+  }
+
+  function renderMemberCard(member, checkin, projectName) {
+    const card = el('div', { class: 'card member-card' }, [
+      el('p', { class: 'name' }, [member.name]),
+    ]);
+    if (!checkin) {
+      card.appendChild(el('p', { class: 'empty' }, ['No check-ins yet']));
+      return card;
+    }
+    const status = moodStatus(checkin.mood);
+    card.appendChild(el('p', { class: 'project' }, [projectName]));
+    card.appendChild(el('p', { class: 'week' }, [checkin.week]));
+    const dot = el('span', { class: 'mood-dot', style: `background:${status.color}` }, []);
+    card.appendChild(el('div', { class: 'mood-line' }, [
+      dot,
+      el('span', { class: 'mood-value' }, [String(checkin.mood) + '/5']),
+      el('span', {}, [status.label]),
+    ]));
+    if (checkin.note) card.appendChild(el('p', { class: 'note' }, [checkin.note]));
+    return card;
+  }
+
+  function showTooltip(x, y, week, avg) {
+    const tip = document.getElementById('tooltip');
+    tip.querySelector('.t-week').textContent = week;
+    tip.querySelector('.t-value').textContent = avg.toFixed(1) + ' / 5';
+    tip.style.left = x + 'px';
+    tip.style.top = y + 'px';
+    tip.hidden = false;
+  }
+  function hideTooltip() {
+    document.getElementById('tooltip').hidden = true;
+  }
+
+  function renderTrendCard(project, points) {
+    const card = el('div', { class: 'card trend-card' }, [
+      el('p', { class: 'project-name' }, [project.name]),
+    ]);
+    if (points.length === 0) {
+      card.appendChild(el('p', { class: 'project-sub' }, ['Weekly average mood']));
+      card.appendChild(el('p', { class: 'empty' }, ['No check-ins yet']));
+      return card;
+    }
+    card.appendChild(el('p', { class: 'project-sub' }, ['Weekly average mood']));
+
+    const W = 280, H = 120, padL = 20, padR = 36, padT = 12, padB = 20;
+    const plotW = W - padL - padR, plotH = H - padT - padB;
+    const xFor = (i) => points.length === 1
+      ? padL + plotW / 2
+      : padL + (i / (points.length - 1)) * plotW;
+    const yFor = (v) => padT + (1 - (v - 1) / 4) * plotH; // mood 1..5
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', project.name + ' weekly average mood trend');
+
+    const svgns = 'http://www.w3.org/2000/svg';
+    function svgEl(tag, attrs) {
+      const node = document.createElementNS(svgns, tag);
+      for (const [k, v] of Object.entries(attrs || {})) node.setAttribute(k, v);
+      return node;
+    }
+
+    // gridlines at mood 1..5
+    for (let m = 1; m <= 5; m++) {
+      const y = yFor(m);
+      svg.appendChild(svgEl('line', { class: 'gridline', x1: padL, x2: W - padR, y1: y, y2: y }));
+      if (m === 1 || m === 5) {
+        const label = svgEl('text', { class: 'axis-label', x: padL - 6, y: y + 3, 'text-anchor': 'end' });
+        label.textContent = String(m);
+        svg.appendChild(label);
+      }
+    }
+
+    // line
+    const d = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${xFor(i)} ${yFor(p.avg)}`).join(' ');
+    svg.appendChild(svgEl('path', { class: 'trend-line', d }));
+
+    // week labels
+    points.forEach((p, i) => {
+      const label = svgEl('text', { class: 'axis-label', x: xFor(i), y: H - 4, 'text-anchor': 'middle' });
+      label.textContent = p.week.replace('20', '');
+      svg.appendChild(label);
+    });
+
+    // end value label
+    const last = points[points.length - 1];
+    const endLabel = svgEl('text', {
+      class: 'end-label', x: xFor(points.length - 1) + 6, y: yFor(last.avg) - 8,
+      'text-anchor': points.length > 1 ? 'start' : 'middle',
+    });
+    endLabel.textContent = last.avg.toFixed(1);
+    svg.appendChild(endLabel);
+
+    // dots + hit targets
+    points.forEach((p, i) => {
+      const cx = xFor(i), cy = yFor(p.avg);
+      svg.appendChild(svgEl('circle', { class: 'trend-dot', cx, cy, r: 4 }));
+      const hit = svgEl('circle', {
+        class: 'trend-hit', cx, cy, r: 12, tabindex: '0',
+        role: 'img', 'aria-label': `${p.week}: ${p.avg.toFixed(1)} of 5`,
+      });
+      const onEnter = (evt) => {
+        const rect = svg.getBoundingClientRect();
+        const px = rect.left + (cx / W) * rect.width;
+        const py = rect.top + (cy / H) * rect.height;
+        showTooltip(px, py, p.week, p.avg);
+      };
+      hit.addEventListener('pointerenter', onEnter);
+      hit.addEventListener('focus', onEnter);
+      hit.addEventListener('pointerleave', hideTooltip);
+      hit.addEventListener('blur', hideTooltip);
+      svg.appendChild(hit);
+    });
+
+    card.appendChild(svg);
+    return card;
+  }
+
+  function renderRawTable(members, projects, checkins) {
+    const memberName = new Map(members.map((m) => [m.id, m.name]));
+    const projectName = new Map(projects.map((p) => [p.id, p.name]));
+    const body = document.getElementById('raw-body');
+    const sorted = checkins.slice().sort((a, b) => (a.week < b.week ? -1 : a.week > b.week ? 1 : 0));
+    for (const c of sorted) {
+      body.appendChild(el('tr', {}, [
+        el('td', {}, [memberName.get(c.member) || c.member]),
+        el('td', {}, [projectName.get(c.project) || c.project]),
+        el('td', {}, [c.week]),
+        el('td', { class: 'num' }, [String(c.mood)]),
+        el('td', {}, [c.note || '']),
+      ]));
+    }
+  }
+
+  async function main() {
+    const status = document.getElementById('status');
+    let data;
+    try {
+      const res = await fetch('/api/pulse');
+      if (!res.ok) throw new Error('request failed: ' + res.status);
+      data = await res.json();
+    } catch (err) {
+      status.textContent = 'Could not load pulse data: ' + err.message;
+      status.classList.add('error');
+      return;
+    }
+
+    const { members, projects, checkins } = data;
+    const latestByMember = computeLatestByMember(members, checkins);
+    const trendByProject = computeWeeklyTrendByProject(projects, checkins);
+    const projectName = new Map(projects.map((p) => [p.id, p.name]));
+
+    const membersEl = document.getElementById('members');
+    for (const member of members) {
+      const checkin = latestByMember.get(member.id);
+      membersEl.appendChild(renderMemberCard(member, checkin, checkin ? projectName.get(checkin.project) : ''));
+    }
+
+    const trendsEl = document.getElementById('trends');
+    for (const project of projects) {
+      trendsEl.appendChild(renderTrendCard(project, trendByProject.get(project.id) || []));
+    }
+
+    renderRawTable(members, projects, checkins);
+
+    status.hidden = true;
+    document.getElementById('members-section').hidden = false;
+    document.getElementById('trends-section').hidden = false;
+    document.getElementById('raw-section').hidden = false;
+  }
+
+  main();
+})();
+</script>
+</body>
+</html>
