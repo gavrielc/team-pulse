@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team Pulse</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page:           #f9f9f7;
+    --surface-1:      #fcfcfb;
+    --text-primary:   #0b0b0b;
+    --text-secondary: #52514e;
+    --text-muted:     #898781;
+    --gridline:       #e1e0d9;
+    --baseline:       #c3c2b7;
+    --border:         rgba(11,11,11,0.10);
+    --series-1:       #2a78d6;
+    --series-1-track: #b7d3f6;
+    --critical:       #d03b3b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --page:           #0d0d0d;
+      --surface-1:      #1a1a19;
+      --text-primary:   #ffffff;
+      --text-secondary: #c3c2b7;
+      --text-muted:     #898781;
+      --gridline:       #2c2c2a;
+      --baseline:       #383835;
+      --border:         rgba(255,255,255,0.10);
+      --series-1:       #3987e5;
+      --series-1-track: #184f95;
+      --critical:       #e66767;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--text-primary);
+    font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  main {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 24px 20px 64px;
+  }
+  h1 {
+    font-size: 20px;
+    margin: 0 0 4px;
+  }
+  .subtitle {
+    color: var(--text-secondary);
+    margin: 0 0 20px;
+  }
+
+  /* filters */
+  form#filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  form#filters label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  form#filters input {
+    font: inherit;
+    padding: 7px 9px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--surface-1);
+    color: var(--text-primary);
+    min-width: 140px;
+  }
+  form#filters button {
+    font: inherit;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    background: var(--series-1);
+    color: #fff;
+    cursor: pointer;
+  }
+  form#filters button:hover { filter: brightness(1.08); }
+
+  section { margin-bottom: 32px; }
+  section > h2 {
+    font-size: 15px;
+    margin: 0 0 12px;
+    color: var(--text-secondary);
+    font-weight: 600;
+  }
+
+  #banner {
+    display: none;
+    padding: 10px 14px;
+    border-radius: 6px;
+    background: var(--surface-1);
+    border: 1px solid var(--critical);
+    color: var(--critical);
+    margin-bottom: 20px;
+    font-size: 14px;
+  }
+  #banner.show { display: block; }
+
+  #results { transition: opacity .15s ease; }
+  #results.loading { opacity: .5; }
+
+  .empty {
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* member cards */
+  #cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+  }
+  .card {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px;
+  }
+  .card h3 {
+    margin: 0 0 8px;
+    font-size: 15px;
+  }
+  .meter-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .meter-track {
+    flex: 1;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--series-1-track);
+    overflow: hidden;
+  }
+  .meter-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: var(--series-1);
+  }
+  .meter-value {
+    font-variant-numeric: tabular-nums;
+    color: var(--text-secondary);
+    font-size: 13px;
+    min-width: 28px;
+    text-align: right;
+  }
+  .card .note {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+  }
+  .card .note.empty { color: var(--text-muted); }
+
+  /* trend chart */
+  .chart-wrap {
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    overflow-x: auto;
+  }
+  svg#trend { display: block; width: 100%; height: 260px; overflow: visible; }
+  .tick-label {
+    fill: var(--text-muted);
+    font-size: 11px;
+  }
+  .end-label {
+    fill: var(--text-primary);
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .gridline { stroke: var(--gridline); stroke-width: 1; }
+  .baseline { stroke: var(--baseline); stroke-width: 1; }
+  .trend-line { fill: none; stroke: var(--series-1); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .trend-dot { fill: var(--series-1); stroke: var(--surface-1); stroke-width: 2; }
+  .hit-area { fill: transparent; cursor: crosshair; }
+  .crosshair { stroke: var(--baseline); stroke-width: 1; pointer-events: none; display: none; }
+
+  #tooltip {
+    position: absolute;
+    display: none;
+    pointer-events: none;
+    background: var(--surface-1);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 13px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    white-space: nowrap;
+  }
+  #tooltip .tt-value { font-weight: 700; color: var(--text-primary); }
+  #tooltip .tt-week { color: var(--text-secondary); }
+
+  button.link {
+    font: inherit;
+    background: none;
+    border: none;
+    color: var(--series-1);
+    cursor: pointer;
+    padding: 0;
+    font-size: 13px;
+  }
+  table#trend-table {
+    border-collapse: collapse;
+    margin-top: 12px;
+    font-size: 13px;
+  }
+  table#trend-table th, table#trend-table td {
+    text-align: left;
+    padding: 4px 12px 4px 0;
+    font-variant-numeric: tabular-nums;
+  }
+  table#trend-table th { color: var(--text-secondary); font-weight: 600; }
+  table#trend-table td { color: var(--text-primary); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Team Pulse</h1>
+  <p class="subtitle" id="page-subtitle">Weekly check-ins per project.</p>
+
+  <form id="filters">
+    <label>Project<input id="project" name="project" placeholder="project id" autocomplete="off"></label>
+    <label>Week<input id="week" name="week" placeholder="YYYY-Www (optional)" autocomplete="off"></label>
+    <button type="submit">Load</button>
+  </form>
+
+  <div id="banner"></div>
+
+  <div id="results">
+    <section id="members-section">
+      <h2 id="members-heading">Members</h2>
+      <div id="cards"></div>
+    </section>
+
+    <section id="trend-section">
+      <h2 id="trend-heading">Weekly trend</h2>
+      <div class="chart-wrap">
+        <svg id="trend" viewBox="0 0 640 260" preserveAspectRatio="none"></svg>
+      </div>
+      <p><button type="button" class="link" id="toggle-table">View as table</button></p>
+      <table id="trend-table" hidden>
+        <thead><tr><th>Week</th><th>Avg mood</th></tr></thead>
+        <tbody id="trend-table-body"></tbody>
+      </table>
+    </section>
+  </div>
+</main>
+
+<div id="tooltip"></div>
+
+<script>
+(function () {
+  var SVG_NS = "http://www.w3.org/2000/svg";
+  var els = {
+    form: document.getElementById("filters"),
+    project: document.getElementById("project"),
+    week: document.getElementById("week"),
+    banner: document.getElementById("banner"),
+    results: document.getElementById("results"),
+    cards: document.getElementById("cards"),
+    membersHeading: document.getElementById("members-heading"),
+    trendHeading: document.getElementById("trend-heading"),
+    subtitle: document.getElementById("page-subtitle"),
+    svg: document.getElementById("trend"),
+    tooltip: document.getElementById("tooltip"),
+    toggleTable: document.getElementById("toggle-table"),
+    table: document.getElementById("trend-table"),
+    tableBody: document.getElementById("trend-table-body"),
+  };
+
+  function svgEl(tag, attrs) {
+    var el = document.createElementNS(SVG_NS, tag);
+    for (var k in attrs) {
+      if (attrs[k] === undefined || attrs[k] === null) continue;
+      el.setAttribute(k, attrs[k]);
+    }
+    return el;
+  }
+
+  function paramsFromInputs() {
+    var p = new URLSearchParams();
+    var project = els.project.value.trim();
+    var week = els.week.value.trim();
+    if (project) p.set("project", project);
+    if (week) p.set("week", week);
+    return p;
+  }
+
+  function syncUrl(params) {
+    var qs = params.toString();
+    var url = location.pathname + (qs ? "?" + qs : "");
+    history.replaceState(null, "", url);
+  }
+
+  function showBanner(message) {
+    els.banner.textContent = message;
+    els.banner.classList.add("show");
+  }
+  function hideBanner() {
+    els.banner.classList.remove("show");
+    els.banner.textContent = "";
+  }
+
+  function clearChildren(node) {
+    while (node.firstChild) node.removeChild(node.firstChild);
+  }
+
+  function renderMembers(project, week, members) {
+    els.membersHeading.textContent = "Members — " + project.name + " · " + week;
+    clearChildren(els.cards);
+    if (!members.length) {
+      var empty = document.createElement("p");
+      empty.className = "empty";
+      empty.textContent = "No check-ins for this week.";
+      els.cards.appendChild(empty);
+      return;
+    }
+    members.forEach(function (m) {
+      var card = document.createElement("div");
+      card.className = "card";
+
+      var h3 = document.createElement("h3");
+      h3.textContent = m.name;
+      card.appendChild(h3);
+
+      var row = document.createElement("div");
+      row.className = "meter-row";
+      var track = document.createElement("div");
+      track.className = "meter-track";
+      var fill = document.createElement("div");
+      fill.className = "meter-fill";
+      fill.style.width = Math.max(0, Math.min(5, m.mood)) / 5 * 100 + "%";
+      track.appendChild(fill);
+      var value = document.createElement("span");
+      value.className = "meter-value";
+      value.textContent = m.mood + " / 5";
+      row.appendChild(track);
+      row.appendChild(value);
+      card.appendChild(row);
+
+      var note = document.createElement("p");
+      note.className = "note" + (m.note ? "" : " empty");
+      note.textContent = m.note ? m.note : "no note";
+      card.appendChild(note);
+
+      els.cards.appendChild(card);
+    });
+  }
+
+  function renderTrend(project, trend) {
+    els.trendHeading.textContent = "Weekly trend — " + project.name;
+    clearChildren(els.svg);
+    clearChildren(els.tableBody);
+
+    trend.forEach(function (t) {
+      var tr = document.createElement("tr");
+      var wk = document.createElement("td");
+      wk.textContent = t.week;
+      var av = document.createElement("td");
+      av.textContent = t.avgMood.toFixed(1);
+      tr.appendChild(wk);
+      tr.appendChild(av);
+      els.tableBody.appendChild(tr);
+    });
+
+    if (!trend.length) {
+      var text = svgEl("text", { x: 320, y: 130, "text-anchor": "middle", class: "tick-label" });
+      text.textContent = "No check-ins yet.";
+      els.svg.appendChild(text);
+      return;
+    }
+
+    var W = 640, H = 260;
+    var padL = 28, padR = 44, padT = 16, padB = 32;
+    var plotW = W - padL - padR;
+    var plotH = H - padT - padB;
+    var minY = 1, maxY = 5;
+
+    function yFor(v) {
+      return padT + plotH - ((v - minY) / (maxY - minY)) * plotH;
+    }
+    function xFor(i) {
+      return trend.length === 1
+        ? padL + plotW / 2
+        : padL + (i / (trend.length - 1)) * plotW;
+    }
+
+    // gridlines + y ticks
+    for (var v = minY; v <= maxY; v++) {
+      var y = yFor(v);
+      els.svg.appendChild(svgEl("line", { x1: padL, x2: W - padR, y1: y, y2: y, class: "gridline" }));
+      var tick = svgEl("text", { x: padL - 8, y: y + 4, "text-anchor": "end", class: "tick-label" });
+      tick.textContent = String(v);
+      els.svg.appendChild(tick);
+    }
+    els.svg.appendChild(svgEl("line", { x1: padL, x2: W - padR, y1: padT + plotH, y2: padT + plotH, class: "baseline" }));
+
+    // x labels (rotate when there are many)
+    var rotate = trend.length > 8;
+    trend.forEach(function (t, i) {
+      var x = xFor(i);
+      var label = svgEl("text", {
+        x: x, y: padT + plotH + (rotate ? 14 : 18),
+        "text-anchor": rotate ? "end" : "middle",
+        class: "tick-label",
+        transform: rotate ? "rotate(-40 " + x + " " + (padT + plotH + 14) + ")" : undefined,
+      });
+      label.textContent = t.week;
+      els.svg.appendChild(label);
+    });
+
+    // line
+    var d = trend.map(function (t, i) {
+      return (i === 0 ? "M" : "L") + xFor(i) + " " + yFor(t.avgMood);
+    }).join(" ");
+    if (trend.length > 1) {
+      els.svg.appendChild(svgEl("path", { d: d, class: "trend-line" }));
+    }
+
+    // crosshair (hidden until hover)
+    var crosshair = svgEl("line", { class: "crosshair", x1: 0, x2: 0, y1: padT, y2: padT + plotH });
+    els.svg.appendChild(crosshair);
+
+    // dots + focusable hit targets
+    trend.forEach(function (t, i) {
+      var x = xFor(i), y = yFor(t.avgMood);
+      els.svg.appendChild(svgEl("circle", { cx: x, cy: y, r: 4, class: "trend-dot" }));
+    });
+
+    // end label — value at the last point
+    var lastIdx = trend.length - 1;
+    var lastX = xFor(lastIdx), lastY = yFor(trend[lastIdx].avgMood);
+    var endLabel = svgEl("text", { x: lastX + 8, y: lastY - 8, class: "end-label" });
+    endLabel.textContent = trend[lastIdx].avgMood.toFixed(1);
+    els.svg.appendChild(endLabel);
+
+    // hit areas — one per week, wider than the mark, snap crosshair + tooltip
+    var bandW = trend.length > 1 ? plotW / (trend.length - 1) : plotW;
+    trend.forEach(function (t, i) {
+      var x = xFor(i);
+      var hit = svgEl("rect", {
+        x: Math.max(padL, x - bandW / 2), y: padT,
+        width: Math.min(bandW, plotW), height: plotH,
+        class: "hit-area", tabindex: "0",
+      });
+      function activate() {
+        crosshair.style.display = "block";
+        crosshair.setAttribute("x1", x);
+        crosshair.setAttribute("x2", x);
+        showTooltip(x, yFor(t.avgMood), t);
+      }
+      function deactivate() {
+        crosshair.style.display = "none";
+        hideTooltip();
+      }
+      hit.addEventListener("pointermove", activate);
+      hit.addEventListener("pointerenter", activate);
+      hit.addEventListener("pointerleave", deactivate);
+      hit.addEventListener("focus", activate);
+      hit.addEventListener("blur", deactivate);
+      els.svg.appendChild(hit);
+    });
+  }
+
+  function showTooltip(svgX, svgY, t) {
+    var rect = els.svg.getBoundingClientRect();
+    var scaleX = rect.width / 640;
+    var scaleY = rect.height / 260;
+    var pageX = rect.left + window.scrollX + svgX * scaleX;
+    var pageY = rect.top + window.scrollY + svgY * scaleY;
+
+    clearChildren(els.tooltip);
+    var val = document.createElement("span");
+    val.className = "tt-value";
+    val.textContent = t.avgMood.toFixed(1);
+    var sep = document.createTextNode(" avg · ");
+    var wk = document.createElement("span");
+    wk.className = "tt-week";
+    wk.textContent = t.week;
+    els.tooltip.appendChild(val);
+    els.tooltip.appendChild(sep);
+    els.tooltip.appendChild(wk);
+
+    els.tooltip.style.display = "block";
+    els.tooltip.style.left = (pageX + 10) + "px";
+    els.tooltip.style.top = (pageY - 32) + "px";
+  }
+  function hideTooltip() {
+    els.tooltip.style.display = "none";
+  }
+
+  function load() {
+    var params = paramsFromInputs();
+    if (!params.get("project")) {
+      hideBanner();
+      els.membersHeading.textContent = "Members";
+      els.trendHeading.textContent = "Weekly trend";
+      clearChildren(els.cards);
+      clearChildren(els.svg);
+      clearChildren(els.tableBody);
+      var hint = document.createElement("p");
+      hint.className = "empty";
+      hint.textContent = "Enter a project id above to see its pulse.";
+      els.cards.appendChild(hint);
+      return;
+    }
+    syncUrl(params);
+    els.results.classList.add("loading");
+    fetch("/api/pulse?" + params.toString())
+      .then(function (res) {
+        return res.json().then(function (body) {
+          return { ok: res.ok, body: body };
+        });
+      })
+      .then(function (r) {
+        els.results.classList.remove("loading");
+        if (!r.ok) {
+          showBanner(r.body && r.body.error ? r.body.error : "Could not load pulse data.");
+          return;
+        }
+        hideBanner();
+        els.subtitle.textContent = r.body.project.name + " — " + r.body.week;
+        renderMembers(r.body.project, r.body.week, r.body.members);
+        renderTrend(r.body.project, r.body.trend);
+      })
+      .catch(function (err) {
+        els.results.classList.remove("loading");
+        showBanner("Could not reach the server: " + err.message);
+      });
+  }
+
+  els.form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    load();
+  });
+
+  els.toggleTable.addEventListener("click", function () {
+    var showing = !els.table.hidden;
+    els.table.hidden = showing;
+    els.toggleTable.textContent = showing ? "View as table" : "Hide table";
+  });
+
+  // initial state from the URL
+  var initial = new URLSearchParams(location.search);
+  if (initial.get("project")) els.project.value = initial.get("project");
+  if (initial.get("week")) els.week.value = initial.get("week");
+  load();
+})();
+</script>
+</body>
+</html>
