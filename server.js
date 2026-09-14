@@ -6,6 +6,8 @@ const DATA_PATH = process.env.PULSE_DATA_FILE
   ? path.resolve(process.env.PULSE_DATA_FILE)
   : path.join(process.cwd(), 'pulse.json');
 
+const PAGE_PATH = path.join(process.cwd(), 'index.html');
+
 function readData() {
   const raw = fs.readFileSync(DATA_PATH, 'utf8');
   return JSON.parse(raw);
@@ -49,8 +51,33 @@ function handlePulse(res, url) {
   });
 }
 
+function handlePage(res) {
+  let html;
+  try {
+    html = fs.readFileSync(PAGE_PATH, 'utf8');
+  } catch (err) {
+    sendJson(res, 404, { error: 'not found' });
+    return;
+  }
+  const payload = Buffer.from(html, 'utf8');
+  res.writeHead(200, {
+    'Content-Type': 'text/html; charset=utf-8',
+    'Content-Length': payload.length,
+  });
+  res.end(payload);
+}
+
 function requestListener(req, res) {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+
+  if (url.pathname === '/' || url.pathname === '/index.html') {
+    if (req.method !== 'GET') {
+      sendJson(res, 405, { error: 'method not allowed' });
+      return;
+    }
+    handlePage(res);
+    return;
+  }
 
   if (url.pathname === '/api/pulse') {
     if (req.method !== 'GET') {

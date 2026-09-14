@@ -48,9 +48,7 @@ error codes; read it before changing `server.js`.
 
 `index.html` shows a card per member with their latest check-in, plus a
 weekly average-mood trend per project, fetched from `GET /api/pulse`.
-
-`server.js` doesn't serve it yet (see T6 on the board) — for now, open
-`index.html` directly or serve it with a separate static server.
+`server.js` serves it at `/` (and `/index.html`).
 
 ## Layout
 
@@ -59,7 +57,7 @@ weekly average-mood trend per project, fetched from `GET /api/pulse`.
 - `validate-pulse.js`: schema and referential-integrity validator
 - `server.js`: the API
 - `API.md`: the API contract
-- `index.html`: the page (not yet served by `server.js`, see T6)
+- `index.html`: the page, served by `server.js` at `/`
 - `tests/`: `api.test.js`, `schema.test.js` and fixtures
 - `NOTES.md`: working notes
 

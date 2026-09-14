@@ -44,8 +44,12 @@ an error — an unknown id is not a malformed request.
 | 405    | request method is not `GET`                            | `{ "error": "method not allowed" }` |
 | 500    | `pulse.json` is missing or is not valid JSON            | `{ "error": "failed to read pulse data" }` |
 
-Any path other than `/api/pulse` returns `404 { "error": "not found" }`
-(nothing else is routed yet — T3's page route is out of scope for this
-endpoint).
-
 All responses are `application/json; charset=utf-8`.
+
+## GET / and GET /index.html
+
+Serve `index.html` from the repository root as `text/html; charset=utf-8`.
+405 for a non-`GET` request, 404 (JSON `{ "error": "not found" }`) if the
+file is missing.
+
+Any other path returns `404 { "error": "not found" }`.
