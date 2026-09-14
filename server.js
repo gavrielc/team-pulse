@@ -96,8 +96,34 @@ function handleDigest(res) {
   sendJson(res, 200, buildDigest(data));
 }
 
+function handlePage(res) {
+  const pagePath = path.join(process.cwd(), 'index.html');
+  let html;
+  try {
+    html = fs.readFileSync(pagePath, 'utf8');
+  } catch (err) {
+    sendJson(res, 404, { error: 'not found' });
+    return;
+  }
+  const payload = Buffer.from(html, 'utf8');
+  res.writeHead(200, {
+    'Content-Type': 'text/html; charset=utf-8',
+    'Content-Length': payload.length,
+  });
+  res.end(payload);
+}
+
 function requestListener(req, res) {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+
+  if (url.pathname === '/' || url.pathname === '/index.html') {
+    if (req.method !== 'GET') {
+      sendJson(res, 405, { error: 'method not allowed' });
+      return;
+    }
+    handlePage(res);
+    return;
+  }
 
   if (url.pathname === '/api/pulse') {
     if (req.method !== 'GET') {

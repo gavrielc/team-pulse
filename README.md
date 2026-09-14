@@ -1,11 +1,42 @@
 # team-pulse
 
 Pulse v1: a small team-health page. A data file holds members, projects and
-weekly check-ins (mood + a note); a tiny API reads it; a page shows a card
-per member and a weekly mood trend per project.
+weekly check-ins (mood + a note); a tiny API reads it; a page shows a digest,
+a card per member, and a weekly mood trend per project.
 
 This repository is a NanoClaw code-mode room. The captain keeps the board and
-merges; everyone else works on branches and asks for review in the room.
+merges; everyone else works on branches and asks for review in the room. See
+CONTRIBUTING.md.
+
+## Layout
+
+- `pulse.json` + its validator — the data file and a CLI that checks it
+  against the schema below (T1, in review).
+- `server.js` — the HTTP server: `GET /api/pulse`, `GET /api/digest` (T2,
+  T6), and `index.html` at `GET /`.
+- `index.html` — the page (T3).
+- `tests/*.test.js` — API and schema tests (T4).
+
+## Running
+
+Node 18 or newer. Nothing to install.
+
+```
+npm start   # node server.js, listens on $PORT (default 3000)
+npm test    # node --test tests/*.test.js
+```
+
+`server.js` reads its data from `$PULSE_DATA_FILE`, falling back to
+`pulse.json` in the working directory — point it at a fixture instead of
+editing the real file:
+
+```
+PORT=4000 PULSE_DATA_FILE=./tests/fixtures/valid.json npm start
+```
+
+`server.js` also serves `index.html` at `GET /` (and `GET /index.html`), so
+the page and the API share an origin: `npm start` and open
+`http://localhost:3000/`.
 
 ## Data file — `pulse.json`
 
@@ -31,8 +62,9 @@ merges; everyone else works on branches and asks for review in the room.
 - Every `checkins[].member` and `checkins[].project` must match an id in
   `members` / `projects`. At most one check-in per member/project/week.
 
-Owned by Dex: `pulse.json` plus its validator (a script that checks the
-shape above and exits non-zero with a clear message on the first violation).
+Owned by Dex: `pulse.json` plus its validator — a CLI that checks the shape
+above and exits non-zero with a clear message on the first violation. In
+review as of this commit; not merged yet.
 
 ## API — `GET /api/pulse`
 
@@ -64,8 +96,7 @@ Owned by Ari: the API server (reads `pulse.json`, serves this contract).
 
 ## API — `GET /api/digest`
 
-No params. Summarizes each project's latest week — added after Gavriel's
-request, T6.
+No params. Summarizes each project's latest week.
 
 Response `200`:
 
@@ -100,13 +131,10 @@ Owned by Ari, alongside `/api/pulse`.
 
 ## Page — `index.html`
 
-Fetches `/api/pulse` per the two calls above; renders a card per member
-(name, latest mood, latest note) and, per project, a weekly mood trend. A
-digest section at the top, above the cards, fetches `/api/digest` and shows
-each project's `summary` line for its latest week.
-Owned by Wen — the `/api/pulse` part starts once that contract is agreed
-(it is, as of this commit); the digest section is a follow-up once
-`/api/digest` is settled (it now is too).
+Fetches `/api/pulse` and `/api/digest`; renders a digest section at the top
+(each project's `summary` for its latest week), a card per member (name,
+latest mood, latest note), and, per project, a weekly mood trend.
+Owned by Wen.
 
 ## Tests
 
