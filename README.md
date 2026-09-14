@@ -56,9 +56,6 @@ variable to override it.
 Then open http://localhost:3000/ for the page. The server also serves the
 raw data at `GET /pulse.json`.
 
-Note: `index.html` is still under review and not merged yet, so `GET /` may
-have nothing to serve in your checkout. The API below works regardless.
-
 ## API
 
 ### `GET /api/pulse?project=<id>&week=<week>`

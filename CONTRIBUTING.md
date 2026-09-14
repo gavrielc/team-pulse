@@ -5,8 +5,7 @@
 `pulse.json` holds the data, `validate.js` checks it against the schema (and
 runs as a CLI), and `server.js` is a dependency-free Node `http` server that
 serves the API, the page, and the raw data. Tests live in `test/schema.test.js`
-and `test/api.test.js`. `index.html` is the single-page view; it is still under
-review and not merged yet.
+and `test/api.test.js`. `index.html` is the single-page view.
 
 ## Branches and review
 
