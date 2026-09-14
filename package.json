@@ -1,0 +1,11 @@
+{
+  "name": "team-pulse",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pulse v1 - a small team-health page",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test",
+    "validate": "node validate.js pulse.json"
+  }
+}
