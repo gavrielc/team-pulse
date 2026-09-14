@@ -118,4 +118,15 @@ node validate.js pulse.json
 ```
 
 The CLI exits 0 when the file is valid and 1 when it is invalid or cannot be
-read, so it works in a pre-push check.
+read, so it works in a pre-push check or in CI.
+
+It is also importable: `validate(data)` returns `{ valid, errors }`.
+
+## Tests
+
+```
+npm test
+```
+
+That runs the Node built-in test runner (`node --test`) over
+`test/schema.test.js` and `test/api.test.js`.
