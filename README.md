@@ -65,3 +65,9 @@ check-ins yet.
 `index.html` fetches `pulse.json` directly (static) for the list of members
 and projects, and `/api/pulse` per project for mood and trend, rendering a
 card per member and a weekly trend chart per project.
+
+## Running
+
+One server: `node server.js` serves `GET /api/pulse` and also serves
+`index.html` and `pulse.json` statically from the repo root (`/` →
+`index.html`, `/pulse.json` → the data file). No second server.
