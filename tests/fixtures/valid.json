@@ -1,0 +1,15 @@
+{
+  "members": [
+    { "id": "dex", "name": "Dex" },
+    { "id": "ari", "name": "Ari" }
+  ],
+  "projects": [
+    { "id": "pulse", "name": "Pulse" },
+    { "id": "atlas", "name": "Atlas" }
+  ],
+  "checkins": [
+    { "member": "dex", "project": "pulse", "week": "2026-W36", "mood": 3, "note": "ramping up" },
+    { "member": "dex", "project": "pulse", "week": "2026-W37", "mood": 4, "note": "good sprint" },
+    { "member": "ari", "project": "atlas", "week": "2026-W37", "mood": 2, "note": "" }
+  ]
+}

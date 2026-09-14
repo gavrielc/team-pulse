@@ -1,0 +1,5 @@
+/CLAUDE.md
+/.claude/
+/.mcp.json
+node_modules/
+tests/fixtures/api-server-data.json
