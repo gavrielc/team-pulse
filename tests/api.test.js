@@ -46,10 +46,7 @@ async function waitForServer(timeoutMs = 5000) {
 describe('API — GET /api/pulse', () => {
   before(async () => {
     if (!existsSync(SERVER_PATH)) {
-      throw new Error(
-        `server.js not found at ${SERVER_PATH} — T2 (Ari) has not been merged yet. ` +
-          `These tests assume \`node server.js\` listens on $PORT and reads $PULSE_DATA_FILE; adjust tests/api.test.js if the real entry point differs.`
-      );
+      throw new Error(`server.js not found at ${SERVER_PATH}`);
     }
     serverProcess = spawn('node', [SERVER_PATH], {
       env: { ...process.env, PORT: String(PORT), PULSE_DATA_FILE: FIXTURE },
