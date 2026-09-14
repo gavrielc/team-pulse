@@ -4,6 +4,7 @@ import path from "node:path";
 import { computePulseResponse } from "./lib/pulse-api.js";
 
 const DEFAULT_DATA_PATH = path.resolve("pulse.json");
+const INDEX_PATH = path.resolve("index.html");
 
 async function loadData(dataPath) {
   const raw = await readFile(dataPath, "utf8");
@@ -15,11 +16,36 @@ function sendJson(res, status, body) {
   res.end(JSON.stringify(body));
 }
 
+async function sendFile(res, filePath, contentType) {
+  try {
+    const body = await readFile(filePath);
+    res.writeHead(200, { "Content-Type": contentType });
+    res.end(body);
+  } catch {
+    sendJson(res, 404, { error: "not found" });
+  }
+}
+
 export function createServer(dataPath = DEFAULT_DATA_PATH) {
   return http.createServer(async (req, res) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
 
-    if (req.method !== "GET" || url.pathname !== "/api/pulse") {
+    if (req.method !== "GET") {
+      sendJson(res, 404, { error: "not found" });
+      return;
+    }
+
+    if (url.pathname === "/") {
+      await sendFile(res, INDEX_PATH, "text/html; charset=utf-8");
+      return;
+    }
+
+    if (url.pathname === "/pulse.json") {
+      await sendFile(res, dataPath, "application/json");
+      return;
+    }
+
+    if (url.pathname !== "/api/pulse") {
       sendJson(res, 404, { error: "not found" });
       return;
     }
