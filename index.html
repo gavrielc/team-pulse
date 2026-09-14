@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team Pulse</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --border: #262b35;
+    --text: #e6e8ec;
+    --muted: #8b93a3;
+    --accent: #5b8cff;
+    --mood-1: #e5484d;
+    --mood-2: #f0862b;
+    --mood-3: #e8c547;
+    --mood-4: #7fd858;
+    --mood-5: #3ac97b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    padding: 32px 24px 64px;
+  }
+  h1 {
+    font-size: 20px;
+    margin: 0 0 4px;
+  }
+  .subtitle {
+    color: var(--muted);
+    margin: 0 0 32px;
+    font-size: 13px;
+  }
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+  section.project {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px 24px;
+  }
+  section.project h2 {
+    margin: 0 0 2px;
+    font-size: 16px;
+  }
+  .week-label {
+    color: var(--muted);
+    font-size: 12px;
+    margin: 0 0 16px;
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .card {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    background: #1d212b;
+  }
+  .card .name {
+    font-weight: 600;
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+  .mood-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+    color: #0f1115;
+    margin-right: 8px;
+  }
+  .card .note {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 6px;
+  }
+  .empty {
+    color: var(--muted);
+    font-size: 13px;
+    font-style: italic;
+  }
+  canvas {
+    display: block;
+    width: 100%;
+    height: 140px;
+  }
+  .trend-label {
+    color: var(--muted);
+    font-size: 12px;
+    margin: 4px 0 8px;
+  }
+  .error {
+    color: var(--mood-1);
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<h1>Team Pulse</h1>
+<p class="subtitle">Member check-ins and weekly mood trend, per project.</p>
+<main id="app">
+  <p class="empty">Loading…</p>
+</main>
+
+<script>
+const MOOD_COLOR = { 1: "var(--mood-1)", 2: "var(--mood-2)", 3: "var(--mood-3)", 4: "var(--mood-4)", 5: "var(--mood-5)" };
+
+async function fetchJSON(url) {
+  const res = await fetch(url);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || `${res.status} ${res.statusText}`);
+  }
+  return res.json();
+}
+
+function el(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text != null) node.textContent = text;
+  return node;
+}
+
+function renderMemberCards(container, checkins) {
+  const cards = el("div", "cards");
+  if (!checkins.length) {
+    cards.appendChild(el("p", "empty", "No check-ins yet for this week."));
+  } else {
+    for (const c of checkins) {
+      const card = el("div", "card");
+      const nameRow = el("div", "name");
+      const badge = el("span", "mood-badge", String(c.mood));
+      badge.style.background = MOOD_COLOR[c.mood] || "var(--muted)";
+      nameRow.appendChild(badge);
+      nameRow.appendChild(document.createTextNode(c.name));
+      card.appendChild(nameRow);
+      if (c.note) card.appendChild(el("div", "note", c.note));
+      cards.appendChild(card);
+    }
+  }
+  container.appendChild(cards);
+}
+
+function drawTrend(canvas, trend) {
+  const ctx = canvas.getContext("2d");
+  const dpr = window.devicePixelRatio || 1;
+  const width = canvas.clientWidth || 600;
+  const height = canvas.clientHeight || 140;
+  canvas.width = width * dpr;
+  canvas.height = height * dpr;
+  ctx.scale(dpr, dpr);
+
+  const pad = { top: 12, right: 16, bottom: 24, left: 28 };
+  const plotW = width - pad.left - pad.right;
+  const plotH = height - pad.top - pad.bottom;
+
+  ctx.clearRect(0, 0, width, height);
+
+  const style = getComputedStyle(document.documentElement);
+  const border = style.getPropertyValue("--border").trim();
+  const muted = style.getPropertyValue("--muted").trim();
+  const accent = style.getPropertyValue("--accent").trim();
+
+  // axes
+  ctx.strokeStyle = border;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad.left, pad.top);
+  ctx.lineTo(pad.left, pad.top + plotH);
+  ctx.lineTo(pad.left + plotW, pad.top + plotH);
+  ctx.stroke();
+
+  if (!trend.length) return;
+
+  const minMood = 1, maxMood = 5;
+  const xStep = trend.length > 1 ? plotW / (trend.length - 1) : 0;
+  const yFor = (mood) => pad.top + plotH - ((mood - minMood) / (maxMood - minMood)) * plotH;
+  const xFor = (i) => pad.left + i * xStep;
+
+  // mood gridlines + labels
+  ctx.fillStyle = muted;
+  ctx.font = "10px -apple-system, sans-serif";
+  ctx.textAlign = "right";
+  for (let m = minMood; m <= maxMood; m++) {
+    const y = yFor(m);
+    ctx.fillText(String(m), pad.left - 6, y + 3);
+  }
+
+  // line
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  trend.forEach((pt, i) => {
+    const x = xFor(i);
+    const y = yFor(pt.averageMood);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  // points
+  ctx.fillStyle = accent;
+  trend.forEach((pt, i) => {
+    ctx.beginPath();
+    ctx.arc(xFor(i), yFor(pt.averageMood), 3, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // week labels (first, last, and middle if room)
+  ctx.fillStyle = muted;
+  const labelIdxs = trend.length <= 6
+    ? trend.map((_, i) => i)
+    : [0, Math.floor((trend.length - 1) / 2), trend.length - 1];
+  const lastIdx = trend.length - 1;
+  labelIdxs.forEach((i) => {
+    ctx.textAlign = i === 0 ? "left" : i === lastIdx ? "right" : "center";
+    ctx.fillText(trend[i].week, xFor(i), pad.top + plotH + 16);
+  });
+}
+
+async function renderProject(app, project) {
+  const section = el("section", "project");
+  section.appendChild(el("h2", null, project.name));
+  const weekLabel = el("p", "week-label", "");
+  section.appendChild(weekLabel);
+  app.appendChild(section);
+
+  try {
+    const trendData = await fetchJSON(`/api/pulse?project=${encodeURIComponent(project.id)}`);
+    const trend = trendData.trend || [];
+    const latestWeek = trend.length ? trend[trend.length - 1].week : null;
+
+    if (latestWeek) {
+      weekLabel.textContent = `Latest check-in week: ${latestWeek}`;
+      const weekData = await fetchJSON(`/api/pulse?project=${encodeURIComponent(project.id)}&week=${encodeURIComponent(latestWeek)}`);
+      renderMemberCards(section, weekData.checkins || []);
+    } else {
+      weekLabel.textContent = "No check-ins yet";
+      renderMemberCards(section, []);
+    }
+
+    section.appendChild(el("p", "trend-label", "Weekly mood trend"));
+    const canvas = document.createElement("canvas");
+    section.appendChild(canvas);
+    if (trend.length) {
+      requestAnimationFrame(() => drawTrend(canvas, trend));
+    } else {
+      canvas.remove();
+      section.appendChild(el("p", "empty", "No trend data yet."));
+    }
+  } catch (err) {
+    section.appendChild(el("p", "error", `Could not load data: ${err.message}`));
+  }
+}
+
+async function main() {
+  const app = document.getElementById("app");
+  try {
+    // Static catalog of members/projects, served alongside the API (see README's pulse.json shape).
+    const data = await fetchJSON("/pulse.json");
+    app.innerHTML = "";
+    if (!data.projects || !data.projects.length) {
+      app.appendChild(el("p", "empty", "No projects yet."));
+      return;
+    }
+    for (const project of data.projects) {
+      await renderProject(app, project);
+    }
+  } catch (err) {
+    app.innerHTML = "";
+    app.appendChild(el("p", "error", `Could not load pulse.json: ${err.message}`));
+  }
+}
+
+main();
+</script>
+</body>
+</html>

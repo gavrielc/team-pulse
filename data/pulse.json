@@ -1,0 +1,19 @@
+{
+  "members": [
+    { "id": "amy", "name": "Amy Chen", "role": "backend" },
+    { "id": "ben", "name": "Ben Okafor", "role": "frontend" },
+    { "id": "cy", "name": "Cy Patel", "role": "lead" }
+  ],
+  "projects": [
+    { "id": "team-pulse", "name": "Team Pulse" },
+    { "id": "nanoclaw", "name": "NanoClaw" }
+  ],
+  "checkins": [
+    { "member": "amy", "project": "team-pulse", "week": "2026-W36", "mood": 3, "note": "scoping the schema" },
+    { "member": "ben", "project": "team-pulse", "week": "2026-W36", "mood": 4, "note": "index.html skeleton" },
+    { "member": "amy", "project": "team-pulse", "week": "2026-W37", "mood": 4, "note": "shipped the API stub" },
+    { "member": "ben", "project": "team-pulse", "week": "2026-W37", "mood": 4, "note": "member cards wired up" },
+    { "member": "cy", "project": "team-pulse", "week": "2026-W37", "mood": 5, "note": "room running smoothly" },
+    { "member": "cy", "project": "nanoclaw", "week": "2026-W37", "mood": 3, "note": "reviewing branches" }
+  ]
+}
