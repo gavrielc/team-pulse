@@ -106,6 +106,17 @@
   .project-card svg { display: block; width: 100%; height: auto; overflow: visible; }
   .project-card .empty { color: var(--muted); font-size: 13px; font-style: italic; }
 
+  .digest {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .digest .week { color: var(--muted); font-size: 12px; margin: 0 0 8px; }
+  .digest ul { list-style: none; margin: 0; padding: 0; }
+  .digest li { padding: 4px 0; }
+  .digest .empty { color: var(--muted); font-size: 13px; font-style: italic; }
+
   .chart-line { fill: none; stroke: var(--series-1); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .chart-point { fill: var(--series-1); }
   .chart-grid { stroke: var(--gridline); stroke-width: 1; }
@@ -120,6 +131,9 @@
   <p class="subtitle">A card per member's latest check-in, and each project's weekly mood trend.</p>
 
   <div id="status" role="status" aria-live="polite" hidden></div>
+
+  <h2>Digest</h2>
+  <div id="digest" class="digest"></div>
 
   <h2>Team</h2>
   <div id="member-grid" class="grid"></div>
@@ -145,6 +159,13 @@
     var url = "/api/pulse" + (qs ? "?" + qs : "");
     return fetch(url).then(function (res) {
       if (!res.ok) throw new Error(url + " -> " + res.status);
+      return res.json();
+    });
+  }
+
+  function fetchDigest() {
+    return fetch("/api/digest").then(function (res) {
+      if (!res.ok) throw new Error("/api/digest -> " + res.status);
       return res.json();
     });
   }
@@ -265,6 +286,23 @@
     return svg;
   }
 
+  function renderDigest(digest) {
+    var el2 = document.getElementById("digest");
+    el2.innerHTML = "";
+
+    if (!digest.week || !digest.projects.length) {
+      el2.appendChild(el("p", "empty", "No check-ins yet"));
+      return;
+    }
+
+    el2.appendChild(el("p", "week", digest.week));
+    var list = el("ul");
+    digest.projects.forEach(function (p) {
+      list.appendChild(el("li", null, p.summary));
+    });
+    el2.appendChild(list);
+  }
+
   function renderProjectCard(project, trend) {
     var card = el("div", "card project-card");
     card.appendChild(el("p", "name", project.name));
@@ -334,8 +372,16 @@
     return latest;
   }
 
+  function loadDigest() {
+    return fetchDigest().then(renderDigest).catch(function (err) {
+      document.getElementById("digest").innerHTML = "";
+      document.getElementById("digest").appendChild(el("p", "empty", "Could not load digest (" + err.message + ")"));
+    });
+  }
+
   function main() {
     setStatus("Loading…");
+    loadDigest();
 
     // No filters: the full members/projects lists plus every check-in, used
     // to find the latest week (contract: "No params returns every check-in").
