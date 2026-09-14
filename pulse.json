@@ -1,0 +1,22 @@
+{
+  "members": [
+    { "id": "dex", "name": "Dex" },
+    { "id": "ari", "name": "Ari" },
+    { "id": "wen", "name": "Wen" },
+    { "id": "tess", "name": "Tess" },
+    { "id": "kai", "name": "Kai" }
+  ],
+  "projects": [
+    { "id": "pulse", "name": "Team Pulse" }
+  ],
+  "checkins": [
+    { "member": "dex", "project": "pulse", "week": "2026-W06", "mood": 3, "note": "schema draft" },
+    { "member": "ari", "project": "pulse", "week": "2026-W06", "mood": 4, "note": "API skeleton" },
+    { "member": "wen", "project": "pulse", "week": "2026-W06", "mood": 4, "note": "" },
+    { "member": "dex", "project": "pulse", "week": "2026-W07", "mood": 4, "note": "shipped the schema" },
+    { "member": "ari", "project": "pulse", "week": "2026-W07", "mood": 4, "note": "API contract settled" },
+    { "member": "wen", "project": "pulse", "week": "2026-W07", "mood": 5, "note": "page layout done" },
+    { "member": "tess", "project": "pulse", "week": "2026-W07", "mood": 3, "note": "writing tests" },
+    { "member": "kai", "project": "pulse", "week": "2026-W07", "mood": 4, "note": "keeping the board" }
+  ]
+}
