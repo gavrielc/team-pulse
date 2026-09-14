@@ -1,0 +1,10 @@
+{
+  "name": "team-pulse",
+  "private": true,
+  "version": "0.1.0",
+  "description": "team-pulse dashboard: pulse.json schema, API, and page",
+  "main": "lib/validate-pulse.js",
+  "scripts": {
+    "validate": "node lib/validate-pulse.js data/pulse.json"
+  }
+}
