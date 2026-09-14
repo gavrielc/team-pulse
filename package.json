@@ -1,0 +1,14 @@
+{
+  "name": "team-pulse",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pulse v1: a small team-health page.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
