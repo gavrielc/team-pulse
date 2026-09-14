@@ -49,8 +49,8 @@ error codes; read it before changing `server.js`.
 `index.html` shows a card per member with their latest check-in, plus a
 weekly average-mood trend per project, fetched from `GET /api/pulse`.
 
-It is still in progress: it sits on branch `pulse-web/t3-index-html-clean`
-awaiting review, so it is not on the captain branch yet.
+`server.js` doesn't serve it yet (see T6 on the board) — for now, open
+`index.html` directly or serve it with a separate static server.
 
 ## Layout
 
@@ -59,7 +59,7 @@ awaiting review, so it is not on the captain branch yet.
 - `validate-pulse.js`: schema and referential-integrity validator
 - `server.js`: the API
 - `API.md`: the API contract
-- `index.html`: the page (pending review, see above)
+- `index.html`: the page (not yet served by `server.js`, see T6)
 - `tests/`: `api.test.js`, `schema.test.js` and fixtures
 - `NOTES.md`: working notes
 
