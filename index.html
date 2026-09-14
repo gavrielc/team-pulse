@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Team Pulse</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f7f7f8;
+    --card-bg: #ffffff;
+    --text: #1c1c1e;
+    --muted: #6b6b70;
+    --border: #e2e2e5;
+    --accent: #4f6df5;
+    --mood-low: #e5534b;
+    --mood-mid: #d9a441;
+    --mood-high: #3fa66a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16171a;
+      --card-bg: #212226;
+      --text: #f0f0f2;
+      --muted: #9a9aa2;
+      --border: #34353a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 2rem 1.25rem 4rem;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  h1 {
+    margin: 0 0 0.25rem;
+    font-size: 1.5rem;
+  }
+  .subtitle {
+    color: var(--muted);
+    margin: 0 0 2rem;
+    font-size: 0.9rem;
+  }
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  .project-section {
+    margin-bottom: 2.5rem;
+  }
+  .project-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .project-header h2 {
+    margin: 0;
+    font-size: 1.15rem;
+  }
+  .project-header .week {
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+  }
+  .card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.4rem;
+  }
+  .card-name {
+    font-weight: 600;
+  }
+  .mood-dot {
+    display: inline-block;
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 50%;
+  }
+  .mood-value {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-left: 0.35rem;
+  }
+  .card-note {
+    color: var(--muted);
+    font-size: 0.85rem;
+    line-height: 1.35;
+    margin: 0;
+  }
+  .trend {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+  }
+  .trend-title {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin: 0 0 0.6rem;
+  }
+  .trend-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    height: 90px;
+  }
+  .trend-bar-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+  }
+  .trend-bar {
+    width: 100%;
+    max-width: 28px;
+    border-radius: 4px 4px 0 0;
+    background: var(--accent);
+  }
+  .trend-label {
+    margin-top: 0.35rem;
+    font-size: 0.7rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .empty, .error {
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  .error {
+    color: var(--mood-low);
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Team Pulse</h1>
+  <p class="subtitle">Weekly mood check-ins per member, and the trend per project.</p>
+  <div id="app"><p class="empty">Loading…</p></div>
+</main>
+<script>
+(function () {
+  var MOOD_COLORS = { 1: "var(--mood-low)", 2: "var(--mood-low)", 3: "var(--mood-mid)", 4: "var(--mood-high)", 5: "var(--mood-high)" };
+
+  function moodColor(mood) {
+    return MOOD_COLORS[Math.round(mood)] || "var(--mood-mid)";
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function renderCard(member) {
+    var hasMood = typeof member.mood === "number";
+    return (
+      '<div class="card">' +
+        '<div class="card-top">' +
+          '<span class="card-name">' + escapeHtml(member.name || member.id) + "</span>" +
+          (hasMood
+            ? '<span><span class="mood-dot" style="background:' + moodColor(member.mood) + '"></span>' +
+              '<span class="mood-value">' + member.mood + "/5</span></span>"
+            : "") +
+        "</div>" +
+        '<p class="card-note">' + (member.note ? escapeHtml(member.note) : "no check-in yet") + "</p>" +
+      "</div>"
+    );
+  }
+
+  function renderTrend(trend) {
+    if (!trend || !trend.length) {
+      return '<p class="empty">No trend data yet.</p>';
+    }
+    var bars = trend.map(function (point) {
+      var pct = Math.max(4, (point.avgMood / 5) * 100);
+      return (
+        '<div class="trend-bar-wrap">' +
+          '<div class="trend-bar" style="height:' + pct + '%; background:' + moodColor(point.avgMood) + '"></div>' +
+          '<div class="trend-label">' + escapeHtml(point.week) + "</div>" +
+        "</div>"
+      );
+    }).join("");
+    return '<div class="trend-chart">' + bars + "</div>";
+  }
+
+  function renderProject(project, data) {
+    var members = (data && data.members) || [];
+    var trend = (data && data.trend) || [];
+    var cardsHtml = members.length
+      ? members.map(renderCard).join("")
+      : '<p class="empty">No check-ins yet.</p>';
+    return (
+      '<section class="project-section">' +
+        '<div class="project-header">' +
+          "<h2>" + escapeHtml(project.name || project.id) + "</h2>" +
+          (data && data.latestWeek ? '<span class="week">latest: ' + escapeHtml(data.latestWeek) + "</span>" : "") +
+        "</div>" +
+        (members.length ? '<div class="cards">' + cardsHtml + "</div>" : cardsHtml) +
+        '<div class="trend"><p class="trend-title">Weekly trend</p>' + renderTrend(trend) + "</div>" +
+      "</section>"
+    );
+  }
+
+  function renderProjectError(project, message) {
+    return (
+      '<section class="project-section">' +
+        '<div class="project-header"><h2>' + escapeHtml(project.name || project.id) + "</h2></div>" +
+        '<p class="error">Could not load: ' + escapeHtml(message) + "</p>" +
+      "</section>"
+    );
+  }
+
+  function fetchJson(url) {
+    return fetch(url).then(function (res) {
+      if (!res.ok) throw new Error(res.status + " " + res.statusText);
+      return res.json();
+    });
+  }
+
+  function fetchProjectPulse(project) {
+    return fetchJson("/api/pulse?project=" + encodeURIComponent(project.id))
+      .then(function (data) { return renderProject(project, data); })
+      .catch(function (err) { return renderProjectError(project, err.message); });
+  }
+
+  var app = document.getElementById("app");
+
+  fetchJson("pulse.json")
+    .then(function (source) {
+      var projects = source.projects || [];
+      if (!projects.length) {
+        app.innerHTML = '<p class="empty">No projects yet.</p>';
+        return;
+      }
+      return Promise.all(projects.map(fetchProjectPulse)).then(function (sections) {
+        app.innerHTML = sections.join("");
+      });
+    })
+    .catch(function (err) {
+      app.innerHTML = '<p class="error">Could not load pulse.json: ' + escapeHtml(err.message) + "</p>";
+    });
+})();
+</script>
+</body>
+</html>
