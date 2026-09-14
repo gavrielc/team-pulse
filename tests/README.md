@@ -10,7 +10,13 @@
 - `api.test.js` — `GET /api/pulse` (T2, Ari): no-params returns everything,
   `project=` and `week=` filter (alone and combined), an unknown filter
   value returns `200` with an empty `checkins` array, an unknown route
-  returns `404`. `GET /api/digest` (T6) has no coverage yet — open.
+  returns `404`.
+- `digest.test.js` — `GET /api/digest` (T6, Ari): latest week is the max
+  across all check-ins (not per-project, and correct across a year
+  boundary), a project with no check-in that week is omitted rather than
+  zeroed, `avgMood` is the rounded mean and `membersCheckedIn` the count,
+  `summary` names the project/average/count, and an empty file yields
+  `week: null, projects: []`.
 
 Fixtures live in `tests/fixtures/`.
 
