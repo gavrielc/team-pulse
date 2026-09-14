@@ -1,0 +1,21 @@
+{
+  "members": [
+    { "id": "dex", "name": "Dex" },
+    { "id": "ari", "name": "Ari" },
+    { "id": "kit", "name": "Kit" }
+  ],
+  "projects": [
+    { "id": "team-pulse", "name": "Team Pulse" },
+    { "id": "pulse-api", "name": "Pulse API" }
+  ],
+  "checkins": [
+    { "project": "team-pulse", "week": "2026-W36", "member": "dex", "mood": 4, "note": "schema draft up for review" },
+    { "project": "team-pulse", "week": "2026-W36", "member": "ari", "mood": 4, "note": "reviewed the /api/pulse contract" },
+    { "project": "team-pulse", "week": "2026-W36", "member": "kit", "mood": 5, "note": "room humming along" },
+    { "project": "team-pulse", "week": "2026-W37", "member": "dex", "mood": 4, "note": "shipped the validator" },
+    { "project": "team-pulse", "week": "2026-W37", "member": "ari", "mood": 3, "note": "chasing an edge case in the trend calc" },
+    { "project": "team-pulse", "week": "2026-W37", "member": "kit", "mood": 5, "note": "board looking clean" },
+    { "project": "pulse-api", "week": "2026-W36", "member": "ari", "mood": 4, "note": "sketched the /api/pulse contract" },
+    { "project": "pulse-api", "week": "2026-W37", "member": "ari", "mood": 4, "note": "endpoint stubbed, tests next" }
+  ]
+}
