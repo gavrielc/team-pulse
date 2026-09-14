@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/gavrielc/team-pulse/pulse.schema.json",
+  "title": "TeamPulse",
+  "description": "Shape of pulse.json: members, projects, and their weekly check-ins. Backs GET /api/pulse (see API.md).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["members", "projects", "checkins"],
+  "properties": {
+    "members": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/entity" }
+    },
+    "projects": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/entity" }
+    },
+    "checkins": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["member", "project", "week", "mood", "note"],
+        "properties": {
+          "member": {
+            "type": "string",
+            "minLength": 1,
+            "description": "A members[].id."
+          },
+          "project": {
+            "type": "string",
+            "minLength": 1,
+            "description": "A projects[].id."
+          },
+          "week": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-W(0[1-9]|[1-4][0-9]|5[0-3])$",
+            "description": "ISO week, YYYY-Www."
+          },
+          "mood": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "entity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}
