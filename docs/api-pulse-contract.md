@@ -1,7 +1,7 @@
 # API contract — GET /api/pulse
 
-Serves this repository's contribution activity for the dashboard (member
-cards + weekly trend per project, per T4).
+Serves the team's weekly check-ins (mood + note per member) for the
+dashboard (member cards + weekly mood trend per project, per T4).
 
 ## Request
 
@@ -32,29 +32,33 @@ when a filter matches nothing):
       "weeks": [
         {
           "week": "2026-W37",
-          "commits": 12,
-          "members": [
-            { "member": "gavrielc", "commits": 7 },
-            { "member": "pulse-s2b", "commits": 5 }
+          "average_mood": 3.7,
+          "checkins": [
+            { "member": "gavrielc", "mood": 4, "note": "shipped the schema" },
+            { "member": "pulse-s2b", "mood": 3, "note": "context switching a lot" }
           ]
         }
       ]
     }
   ],
   "members": [
-    { "member": "gavrielc", "commits": 7, "weeks_active": 1 },
-    { "member": "pulse-s2b", "commits": 5, "weeks_active": 1 }
+    { "member": "gavrielc", "mood": 4, "note": "shipped the schema", "week": "2026-W37" },
+    { "member": "pulse-s2b", "mood": 3, "note": "context switching a lot", "week": "2026-W37" }
   ]
 }
 ```
 
-- `projects[].weeks[]` is sorted ascending by `week`, and is what T4 plots
+- `projects[].weeks[]` is sorted ascending by `week`, and `week.average_mood`
+  (mean of that week's `mood` values, rounded to 1 decimal) is what T4 plots
   as the weekly trend for that project.
-- `members[]` is the totals used for T4's member cards. It aggregates the
-  currently-filtered data: with `?project=`, only that project's members and
-  their totals within it; with `?week=`, only that week's activity.
-- `weeks[].commits` and a member's `commits` are both simple sums; no
-  weighting.
+- `members[]` is what T4's member cards render: each member's *latest*
+  check-in within the currently-filtered scope (`?project=` narrows to that
+  project's check-ins; `?week=` narrows to that week, so "latest" collapses
+  to it) — not an aggregate. `week` on each entry says which week that
+  mood/note is from.
+- `mood` is an integer 1–5 (1 = struggling, 5 = great). `note` is free text,
+  `""` if a member skipped it. Scale/fields to be confirmed against T1's
+  schema.
 
 ## Errors
 
@@ -62,7 +66,7 @@ when a filter matches nothing):
   `YYYY-Www`.
 - `404` `{ "error": "unknown project" }` — `project` given but no such
   project exists in the dataset. (`week` finding nothing is not an error —
-  it's a valid week with no activity — so it returns `200` with empty
+  it's a valid week with no check-ins — so it returns `200` with empty
   arrays.)
 
 ## Source data (assumption, for T1 to confirm)
@@ -77,8 +81,8 @@ The API reads a `pulse.json` at the repo root, shaped as:
       "weeks": [
         {
           "week": "2026-W37",
-          "members": [
-            { "member": "gavrielc", "commits": 7 }
+          "checkins": [
+            { "member": "gavrielc", "mood": 4, "note": "shipped the schema" }
           ]
         }
       ]
@@ -87,7 +91,8 @@ The API reads a `pulse.json` at the repo root, shaped as:
 }
 ```
 
-The API derives `weeks[].commits` and the top-level `members[]` totals from
-this at request time — `pulse.json` itself doesn't need to carry them
-precomputed. If T1's validated schema differs, ping pulse-api and this doc
-(and the T3 implementation) will be updated to match.
+The API derives `average_mood` and the top-level `members[]` latest-checkin
+view from this at request time — `pulse.json` itself doesn't need to carry
+them precomputed. Field names here (`member`, `mood`, `note`) are what T3's
+implementation expects; if T1's validated schema differs, ping pulse-api and
+this doc (and the T3 implementation) will be updated to match.
