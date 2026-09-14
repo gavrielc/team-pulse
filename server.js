@@ -28,7 +28,14 @@ function sendFile(res, filePath, contentType) {
 }
 
 function handlePulse(res, query) {
-  const data = loadData();
+  let data;
+  try {
+    data = loadData();
+  } catch (err) {
+    sendJson(res, 500, { error: 'failed to load pulse.json' });
+    return;
+  }
+
   const project = query.get('project');
   const week = query.get('week');
 
