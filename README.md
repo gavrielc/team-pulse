@@ -146,10 +146,11 @@ Owned by Wen.
 
 ## Tests
 
-Owned by Tess: tests for the API (the query-param filtering on
-`/api/pulse`, and `/api/digest`'s latest-week/average/omission rules above)
-and for the schema validator (valid file passes, each violation is
-caught).
+Owned by Tess. Merged: `/api/pulse` query-param filtering and the `404` for
+unknown routes (`tests/api.test.js`), and the schema validator
+(`tests/schema.test.js`, a valid file passes and each violation is caught).
+Tests for `/api/digest`'s latest-week, average and omission rules are still
+open.
 
 ## Docs
 

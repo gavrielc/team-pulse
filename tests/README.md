@@ -10,22 +10,17 @@
 - `api.test.js` — `GET /api/pulse` (T2, Ari): no-params returns everything,
   `project=` and `week=` filter (alone and combined), an unknown filter
   value returns `200` with an empty `checkins` array, an unknown route
-  returns `404`.
+  returns `404`. `GET /api/digest` (T6) has no coverage yet — open.
 
 Fixtures live in `tests/fixtures/`.
 
-## Assumed entry points
+## Entry points
 
-Neither T1 nor T2 was merged when these were written, so the following is
-assumed rather than verified against real code. If the real entry point
-differs, adjust the test file's `VALIDATOR_PATH`/`SERVER_PATH`/env handling
-to match — the fixtures and assertions encode the README contract and
-should stay as-is.
-
-- **Validator** — `validate.js` at the repo root, run as
-  `node validate.js <path-to-json>` (`argv[2]`, defaulting to `pulse.json`
-  in `cwd` when omitted). Exits `0` for a valid file; exits non-zero with a
-  message (stdout or stderr) naming the violation for an invalid one.
+- **Validator** — `validate-pulse.js` at the repo root, run as
+  `node validate-pulse.js <path-to-json>` (`argv[2]`, defaulting to
+  `pulse.json` in `cwd` when omitted). Exits `0` for a valid file; exits
+  non-zero with a message (stdout or stderr) naming the violation for an
+  invalid one.
 - **Server** — `server.js` at the repo root, run as `node server.js`.
   Listens on `process.env.PORT`. Reads the data file from
   `process.env.PULSE_DATA_FILE` (falling back to `pulse.json` in `cwd`),

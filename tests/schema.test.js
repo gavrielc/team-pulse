@@ -1,15 +1,9 @@
-// Tests for the pulse.json schema validator (owned by Dex, T1).
-//
-// Assumed contract (README's "Data file — pulse.json" section, plus the
-// convention needed to make this testable): a script at `validate.js`,
-// repo root, run as `node validate.js <path-to-json>` (argv[2] defaults to
-// `pulse.json` in cwd). It exits 0 for a valid file, and exits non-zero
-// with a clear message (stderr or stdout) naming the violation for an
-// invalid one, stopping at the first violation found.
-//
-// If validate.js differs from this, adjust VALIDATOR_PATH / spawn args
-// below to match rather than the fixtures — the fixtures encode the rules
-// from the README and should stay as-is.
+// Tests for the pulse.json schema validator (owned by Dex, T1):
+// validate-pulse.js, repo root, run as `node validate-pulse.js
+// <path-to-json>` (argv[2] defaults to `pulse.json` in cwd). Exits 0 for a
+// valid file, and exits non-zero with a clear message (stderr or stdout)
+// naming the violation for an invalid one, stopping at the first violation
+// found.
 
 import { test, describe, before } from 'node:test';
 import assert from 'node:assert/strict';
@@ -30,13 +24,10 @@ function runValidator(fixtureName) {
   return result;
 }
 
-describe('schema validator (validate.js)', () => {
+describe('schema validator (validate-pulse.js)', () => {
   before(() => {
     if (!existsSync(VALIDATOR_PATH)) {
-      throw new Error(
-        `validate.js not found at ${VALIDATOR_PATH} — T1 (Dex) has not been merged yet. ` +
-          `These tests assume \`node validate.js <path>\`; adjust VALIDATOR_PATH in tests/schema.test.js if the real entry point differs.`
-      );
+      throw new Error(`validate-pulse.js not found at ${VALIDATOR_PATH}`);
     }
   });
 
