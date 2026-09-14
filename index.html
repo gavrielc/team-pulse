@@ -103,7 +103,7 @@
   <h1>Team Pulse</h1>
   <p class="subtitle">A card per member's latest check-in, and each project's weekly mood trend.</p>
 
-  <div id="status" hidden></div>
+  <div id="status" role="status" aria-live="polite" hidden></div>
 
   <h2>Team</h2>
   <div id="member-grid" class="grid"></div>
@@ -264,52 +264,49 @@
     return card;
   }
 
+  // Each member's latest check-in overall, straight from pulse.json's own
+  // checkins list — not from any one project's latest week, which would
+  // miss a member whose newest check-in is on an older week of a project
+  // that has since moved on.
+  function computeLatestByMember(checkins, projects) {
+    var projectName = {};
+    projects.forEach(function (p) { projectName[p.id] = p.name; });
+
+    var latest = {};
+    checkins.forEach(function (c) {
+      var existing = latest[c.member];
+      if (!existing || c.week > existing.week) {
+        latest[c.member] = {
+          mood: c.mood, note: c.note, week: c.week,
+          projectName: projectName[c.project] || c.project
+        };
+      }
+    });
+    return latest;
+  }
+
   function main() {
     setStatus("Loading…");
 
     fetchJSON("/pulse.json").then(function (pulse) {
       var members = pulse.members || [];
       var projects = pulse.projects || [];
+      var checkins = pulse.checkins || [];
 
       var trendGrid = document.getElementById("project-grid");
       var memberGrid = document.getElementById("member-grid");
       trendGrid.innerHTML = "";
       memberGrid.innerHTML = "";
 
+      var trendErrors = [];
       return Promise.all(projects.map(function (p) {
         return fetchJSON("/api/pulse?project=" + encodeURIComponent(p.id))
           .then(function (res) { return res.trend || []; })
-          .catch(function () { return []; });
+          .catch(function () { trendErrors.push(p.name); return []; });
       })).then(function (trends) {
         projects.forEach(function (p, i) { trendGrid.appendChild(renderProjectCard(p, trends[i])); });
 
-        // For each project's most recent week, fetch that week's per-member
-        // check-ins, then keep each member's overall latest across projects.
-        var latestWeekFetches = projects.map(function (p, i) {
-          var trend = trends[i];
-          if (!trend.length) return Promise.resolve(null);
-          var week = trend[trend.length - 1].week;
-          return fetchJSON("/api/pulse?project=" + encodeURIComponent(p.id) + "&week=" + encodeURIComponent(week))
-            .then(function (res) { return { project: p, res: res }; })
-            .catch(function () { return null; });
-        });
-
-        return Promise.all(latestWeekFetches);
-      }).then(function (weekResults) {
-        var latestByMember = {};
-        weekResults.forEach(function (entry) {
-          if (!entry) return;
-          (entry.res.checkins || []).forEach(function (c) {
-            var existing = latestByMember[c.member];
-            if (!existing || entry.res.week > existing.week) {
-              latestByMember[c.member] = {
-                mood: c.mood, note: c.note, week: entry.res.week,
-                projectName: entry.project.name
-              };
-            }
-          });
-        });
-
+        var latestByMember = computeLatestByMember(checkins, projects);
         members.forEach(function (m) {
           memberGrid.appendChild(renderMemberCard(m, latestByMember[m.id]));
         });
@@ -317,7 +314,9 @@
         if (!members.length) memberGrid.appendChild(el("p", "empty", "No members yet"));
         if (!projects.length) trendGrid.appendChild(el("p", "empty", "No projects yet"));
 
-        setStatus(null);
+        setStatus(trendErrors.length
+          ? "Couldn't load trend data for: " + trendErrors.join(", ")
+          : null, trendErrors.length > 0);
       });
     }).catch(function (err) {
       setStatus("Could not load team data (" + err.message + "). Is the server running?", true);
