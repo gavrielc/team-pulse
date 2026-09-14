@@ -1,0 +1,17 @@
+{
+  "members": [
+    { "id": "dex", "name": "Dex" },
+    { "id": "sam", "name": "Sam" }
+  ],
+  "projects": [
+    { "id": "pulse", "name": "Pulse" },
+    { "id": "atlas", "name": "Atlas" }
+  ],
+  "checkins": [
+    { "member": "dex", "project": "pulse", "week": "2026-W36", "mood": 3, "note": "ramping up" },
+    { "member": "dex", "project": "pulse", "week": "2026-W37", "mood": 4, "note": "good sprint" },
+    { "member": "sam", "project": "pulse", "week": "2026-W37", "mood": 5, "note": "shipped the API contract" },
+    { "member": "sam", "project": "atlas", "week": "2026-W36", "mood": 2, "note": "blocked on access" },
+    { "member": "sam", "project": "atlas", "week": "2026-W37", "mood": 3, "note": "unblocked, moving again" }
+  ]
+}
