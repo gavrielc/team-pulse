@@ -68,11 +68,14 @@ above and exits non-zero with a clear message on the first violation.
 ### Validator
 
 ```
-node validate-pulse.js
+node validate-pulse.js              # checks pulse.json
+node validate-pulse.js other.json   # checks the file you name
 ```
 
-`validate-pulse.js` checks `pulse.json` against the shape above and exits
-non-zero with a clear message on the first violation.
+`validate-pulse.js` checks the file against the shape above and exits
+non-zero with a clear message on the first violation. With no argument it
+checks `pulse.json` in the working directory; the schema tests pass a path
+to run it against the fixtures in `tests/fixtures/`.
 
 ## API — `GET /api/pulse`
 
@@ -136,6 +139,15 @@ Response `200`:
   rounded average mood, and the check-in count.
 
 Owned by Ari, alongside `/api/pulse`.
+
+## Errors
+
+- `405` with `{"error": "method not allowed"}` for any method other than
+  `GET` on a documented route.
+- `500` with `{"error": "failed to read pulse data"}` when the data file is
+  missing, unreadable or not valid JSON.
+- `404` with `{"error": "not found"}` for an unknown route. `GET /` also
+  returns this until `index.html` lands with T3.
 
 ## Page — `index.html`
 
