@@ -62,5 +62,6 @@ check-ins yet.
 
 ## Page
 
-`index.html` fetches from `/api/pulse` and renders a card per member and a
-weekly trend chart per project.
+`index.html` fetches `pulse.json` directly (static) for the list of members
+and projects, and `/api/pulse` per project for mood and trend, rendering a
+card per member and a weekly trend chart per project.
